@@ -3,19 +3,13 @@ package org.uoh.distributed.peer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.uoh.distributed.peer.game.GlobalView;
-import org.uoh.distributed.peer.game.Reward;
+import org.uoh.distributed.peer.game.Coin;
 import org.uoh.distributed.utils.Constants;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
@@ -24,7 +18,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class Node
 {
@@ -269,9 +262,6 @@ public class Node
     {
         try
         {
-            GlobalView map = new GlobalView( Constants.MAP_WIDTH, Constants.MAP_HEIGHT );
-            map.addRewardAt( 3, 4, new Reward( true, 5, "c2", Reward.RewardType.COINS ) );
-            this.gameMap = map;
             logger.debug( "Initialized the global map -> {}", gameMap );
 
         }

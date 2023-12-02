@@ -1,69 +1,25 @@
 package org.uoh.distributed.peer.game;
 
-import java.io.Serializable;
-
-public class Reward implements Serializable
-{
-    // Enum representing different types of rewards
-    public enum RewardType
-    {
-        COINS,
-        GEMS,
-        POWER_UP,
-        BOMBS
-        // Add more reward types as needed
+public abstract class Reward extends GameObject {
+    public Reward(int x, int y) {
+        super(x, y);
     }
 
-    private boolean positive = true; // Positive and negative rewards ; negative once like bombs
-    private int value;
-    private String name;
-    private RewardType type;
 
-    public Reward( boolean positive, int value, String name, RewardType type )
-    {
-        this.positive = positive;
-        this.value = value;
-        this.name = name;
-        this.type = type;
-    }
-
-    public boolean isPositive()
-    {
-        return positive;
-    }
-
-    public void setPositive( boolean positive )
-    {
-        this.positive = positive;
-    }
-
-    public int getValue()
-    {
-        return value;
-    }
-
-    public void setValue( int value )
-    {
-        this.value = value;
-    }
-
-    public String getName()
-    {
-        return name;
-    }
-
-    public void setName( String name )
-    {
-        this.name = name;
-    }
-
-    public RewardType getType()
-    {
-        return type;
-    }
-
-    public void setType( RewardType type )
-    {
-        this.type = type;
+    /**
+     * Implements the bijective algorithm,
+     *
+     * @implNote
+     * This is only implemented for the {@link Reward} class
+     * so that players can overlap.
+     *
+     * Source <a href="https://www.cs.upc.edu/~alvarez/calculabilitat/enumerabilitat.pdf">enumerability.pdf</a>
+     *
+     * @return unique hash of x and y
+     */
+    @Override
+    public int hashCode() {
+        int tmp = (y + ((x + 1) / 2));
+        return x + (tmp * tmp);
     }
 }
