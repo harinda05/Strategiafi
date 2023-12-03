@@ -10,9 +10,6 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -74,8 +71,10 @@ public class NodeServer
                 DatagramPacket incoming = new DatagramPacket( buffer, buffer.length );
                 datagramSocket.receive( incoming );
 
-                byte[] data = incoming.getData();
-                String request = new String( data, 0, incoming.getLength() );
+                byte[] rawData = incoming.getData();
+
+                byte[] data = RequestBuilder.decompress( rawData );
+                String request = new String( data, 0, data.length );
                 logger.debug( "Received from {}:{} -> {}", incoming.getAddress(), incoming.getPort(), request );
 
                 executorService.submit( () -> {

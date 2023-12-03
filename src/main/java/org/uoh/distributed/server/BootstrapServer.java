@@ -1,6 +1,7 @@
 package org.uoh.distributed.server;
 
 import org.uoh.distributed.utils.Constants;
+import org.uoh.distributed.utils.RequestBuilder;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -69,8 +70,9 @@ public class BootstrapServer
                 DatagramPacket incoming = new DatagramPacket( buffer, buffer.length );
                 sock.receive( incoming );
 
-                byte[] data = incoming.getData();
-                s = new String( data, 0, incoming.getLength() );
+                byte[] rawData = incoming.getData();
+                byte[] data = RequestBuilder.decompress( rawData );
+                s = new String( data, 0, data.length );
 
                 //echo the details of incoming data - client ip : client port - client message
                 echo( incoming.getAddress().getHostAddress() + " : " + incoming.getPort() + " - " + s );
@@ -146,8 +148,8 @@ public class BootstrapServer
 
                     String reply = replyJoiner.toString();
                     reply = String.format( "%04d", reply.length() + 5 ) + Constants.MSG_SEPARATOR + reply;
-
-                    DatagramPacket dpReply = new DatagramPacket( reply.getBytes(), reply.getBytes().length, incoming.getAddress(), incoming.getPort() );
+                    byte[] compressedReply = RequestBuilder.compress( reply.getBytes() );
+                    DatagramPacket dpReply = new DatagramPacket( compressedReply, compressedReply.length, incoming.getAddress(), incoming.getPort() );
                     sock.send( dpReply );
                 }
                 else if( Constants.UNREG.equals( command ) )
@@ -163,8 +165,8 @@ public class BootstrapServer
 
                             String reply = Constants.UNREGOK;
                             reply = String.format( "%04d", reply.length() + 5 ) + Constants.MSG_SEPARATOR + reply;
-
-                            DatagramPacket dpReply = new DatagramPacket( reply.getBytes(), reply.getBytes().length, incoming.getAddress(), incoming.getPort() );
+                            byte[] compressedReply = RequestBuilder.compress( reply.getBytes() );
+                            DatagramPacket dpReply = new DatagramPacket( compressedReply,compressedReply.length, incoming.getAddress(), incoming.getPort() );
                             sock.send( dpReply );
                         }
                     }
@@ -178,8 +180,8 @@ public class BootstrapServer
 
                     String reply = Constants.ECHOOK;
                     reply = String.format( "%04d", reply.length() + 5 ) + Constants.MSG_SEPARATOR + reply;
-
-                    DatagramPacket dpReply = new DatagramPacket( reply.getBytes(), reply.getBytes().length, incoming.getAddress(), incoming.getPort() );
+                    byte[] compressedReply = RequestBuilder.compress( reply.getBytes() );
+                    DatagramPacket dpReply = new DatagramPacket( compressedReply,compressedReply.length, incoming.getAddress(), incoming.getPort() );
                     sock.send( dpReply );
                 }
             }
