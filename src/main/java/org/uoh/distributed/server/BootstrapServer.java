@@ -82,7 +82,7 @@ public class BootstrapServer
 
                 if( Constants.REG.equals( command ) )
                 {
-                    StringJoiner replyJoiner = new StringJoiner( Constants.MSG_SEPARATOR);
+                    StringJoiner replyJoiner = new StringJoiner( Constants.MSG_SEPARATOR );
                     replyJoiner.add( Constants.REGOK );
 
                     String ip = st.nextToken();
@@ -173,7 +173,7 @@ public class BootstrapServer
                 {
                     for( int i = 0; i < nodes.size(); i++ )
                     {
-                        echo( nodes.get( i ).getIp() + Constants.MSG_SEPARATOR+ nodes.get( i ).getPort() + Constants.MSG_SEPARATOR+ nodes.get( i ).getUsername() );
+                        echo( nodes.get( i ).getIp() + Constants.MSG_SEPARATOR + nodes.get( i ).getPort() + Constants.MSG_SEPARATOR + nodes.get( i ).getUsername() );
                     }
 
                     String reply = Constants.ECHOOK;
@@ -229,6 +229,12 @@ public class BootstrapServer
         return started;
     }
 
+
+    /**
+     * This is the main method to run the bootstrap server
+     *
+     * @param args
+     */
     public static void main( String[] args )
     {
         BootstrapServer server = new BootstrapServer( Constants.BOOTSTRAP_PORT );

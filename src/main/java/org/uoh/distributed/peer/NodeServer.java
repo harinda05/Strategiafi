@@ -2,6 +2,7 @@ package org.uoh.distributed.peer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.uoh.distributed.peer.game.GlobalView;
 import org.uoh.distributed.utils.Constants;
 import org.uoh.distributed.utils.RequestBuilder;
 
@@ -9,6 +10,10 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -212,6 +217,33 @@ public class NodeServer
         String msg = String.format( Constants.SYNC_MSG_FORMAT, Constants.TYPE_ENTRIES, RequestBuilder.buildObjectRequest( "OK" ) );
         String response = RequestBuilder.buildRequest( msg );
         retryOrTimeout( response, recipient );
+        // Share the Global map with new Node if the received node is Leader
+        if( node.isLeader() )
+        {
+            Optional<RoutingTableEntry> entry = node.getRoutingTable().getEntries().stream().filter( e -> e.getNodeId() == newNodeId ).findFirst();
+            System.out.println( entry + " - Received :" + recipient );
+            if( entry.isPresent() )
+            {
+                shareGlobalMap( entry.get().getAddress() );
+            }
+        }
+    }
+
+    private void shareGlobalMap( InetSocketAddress recipient ) throws IOException
+    {
+        try
+        {
+            logger.debug( "Returning game Map to -> {}", recipient );
+            String mapMsg = String.format( Constants.SYNC_MSG_FORMAT, Constants.TYPE_MAP, RequestBuilder.buildObjectRequest( node.getGameMap() ) );
+            String mapResponse = RequestBuilder.buildRequest( mapMsg );
+            retryOrTimeout( mapResponse, recipient );
+        }
+        catch( IOException e )
+        {
+            logger.error( "Error occurred when building object request: {}", e );
+            throw e;
+        }
+
     }
 
     private void handleSyncRequest( String request, InetSocketAddress recipient )
@@ -222,15 +254,33 @@ public class NodeServer
         Object obj = RequestBuilder.base64StringToObject( parts[1] );
         switch( parts[0] )
         {
-            case Constants.TYPE_ENTRIES:
-                logger.debug( "Received characters to be taken over -> {}", obj );
+            case Constants.TYPE_MAP:
+                logger.debug( "Received map to be taken over -> {}", obj );
+                try
+                {
+                    syncMap( (GlobalView) obj );
+                }
+                catch( Exception e )
+                {
+                    logger.debug( "Error in converting msg to map -> {}", obj );
+                }
                 break;
             case Constants.TYPE_ROUTING:
                 logger.debug( "Received routing table -> {}", obj );
                 break;
+            default:
+                break;
+
         }
 
         retryOrTimeout( Constants.RESPONSE_OK, recipient );
+    }
+
+    private void syncMap( GlobalView map )
+    {
+        logger.debug( "Received map -> {}", map );
+        node.setGameMap( map );
+
     }
 
     private void respondToPing( String request, InetSocketAddress recipient ) throws IOException

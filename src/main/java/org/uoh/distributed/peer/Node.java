@@ -2,6 +2,8 @@ package org.uoh.distributed.peer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.uoh.distributed.peer.game.GlobalView;
+import org.uoh.distributed.peer.game.Reward;
 import org.uoh.distributed.utils.Constants;
 
 import java.io.IOException;
@@ -35,6 +37,8 @@ public class Node
     private final int port;
     private int nodeId;
     private final RoutingTable routingTable = new RoutingTable();
+    private boolean isLeader;
+    private String leaderNode;
 
     private final NodeServer server;
     private final Communicator communicationProvider;   //  Peer communication provider
@@ -43,6 +47,10 @@ public class Node
     private ScheduledFuture<?> periodicTask;
 
     private BootstrapConnector bootstrapProvider = new BootstrapConnector();
+
+    //----- Game related stuff -----
+    private GlobalView gameMap;
+
 
     public Node( int port )
     {
@@ -120,14 +128,14 @@ public class Node
          * 2. Then periodically ping them and synchronize with their entry tables.
          */
         periodicTask = executorService.scheduleAtFixedRate( () -> {
-                        try
-                        {
-                            runPeriodically();
-                        }
-                        catch( Exception e )
-                        {
-                            logger.error( "Error occurred when running periodic check", e );
-                        }
+            try
+            {
+                runPeriodically();
+            }
+            catch( Exception e )
+            {
+                logger.error( "Error occurred when running periodic check", e );
+            }
         }, Constants.HEARTBEAT_INITIAL_DELAY, Constants.HEARTBEAT_FREQUENCY_MS, TimeUnit.MILLISECONDS );
     }
 
@@ -155,6 +163,12 @@ public class Node
         }
         else
         {
+            if( peers.isEmpty() )
+            {
+                // Automatically become the leader and initialize the game base map
+                setLeader( true );
+                initializeGlobalMap();
+            }
             state.setState( NodeState.REGISTERED );
             logger.info( "Node ({}:{}) registered successfully. Peers -> {}", ipAddress, port, peers );
         }
@@ -169,7 +183,7 @@ public class Node
         this.routingTable.getEntries().parallelStream()
                          .filter( entry -> entry.getNodeId() != this.nodeId )
                          .forEach( entry -> {
-                             Object toBeUndertaken = communicationProvider.notifyNewNode( entry.getAddress(), ipAddress, port , this.nodeId );
+                             Object toBeUndertaken = communicationProvider.notifyNewNode( entry.getAddress(), ipAddress, port, this.nodeId );
                          } );
         /*
             Do some specific work
@@ -224,7 +238,7 @@ public class Node
         try
         {
             bootstrapProvider.unregister( ipAddress, port, username );
-            state .setState ( NodeState.IDLE );
+            state.setState( NodeState.IDLE );
             logger.debug( "Unregistered from Bootstrap Server" );
         }
         catch( IOException e )
@@ -248,6 +262,25 @@ public class Node
         }
     }
 
+    /**
+     * Generate initial global map for game
+     */
+    private void initializeGlobalMap()
+    {
+        try
+        {
+            GlobalView map = new GlobalView( Constants.MAP_WIDTH, Constants.MAP_HEIGHT );
+            map.addRewardAt( 3, 4, new Reward( true, 5, "c2", Reward.RewardType.COINS ) );
+            this.gameMap = map;
+            logger.debug( "Initialized the global map -> {}", gameMap );
+
+        }
+        catch( Exception e )
+        {
+            e.printStackTrace();
+        }
+    }
+
 
     /**
      * Updates the {@link #routingTable} with entries coming from another node's routing table
@@ -261,11 +294,12 @@ public class Node
         entries.forEach( routingTable::addEntry );
     }
 
-    public void addNewNode(String ipAddress, int newNodePort, int newNodeId) {
-        state.checkState(NodeState.CONNECTED, NodeState.CONFIGURED);
-        InetSocketAddress inetSocketAddress = new InetSocketAddress(ipAddress, newNodePort);
-        RoutingTableEntry routingTableEntry = new RoutingTableEntry(inetSocketAddress, newNodeId);
-        routingTable.addEntry(routingTableEntry);
+    public void addNewNode( String ipAddress, int newNodePort, int newNodeId )
+    {
+        state.checkState( NodeState.CONNECTED, NodeState.CONFIGURED );
+        InetSocketAddress inetSocketAddress = new InetSocketAddress( ipAddress, newNodePort );
+        RoutingTableEntry routingTableEntry = new RoutingTableEntry( inetSocketAddress, newNodeId );
+        routingTable.addEntry( routingTableEntry );
         logger.info( "Added routing table entry -> {} from routing table", inetSocketAddress );
 
     }
@@ -317,7 +351,7 @@ public class Node
             executorService.shutdownNow();
         }
 
-        state .setState( NodeState.IDLE);
+        state.setState( NodeState.IDLE );
         logger.info( "Distributed node stopped" );
     }
 
@@ -358,5 +392,28 @@ public class Node
         return nodeId;
     }
 
+    public void setNodeId( int nodeId )
+    {
+        this.nodeId = nodeId;
+    }
 
+    public boolean isLeader()
+    {
+        return isLeader;
+    }
+
+    public void setLeader( boolean leader )
+    {
+        isLeader = leader;
+    }
+
+    public GlobalView getGameMap()
+    {
+        return gameMap;
+    }
+
+    public void setGameMap( GlobalView gameMap )
+    {
+        this.gameMap = gameMap;
+    }
 }
