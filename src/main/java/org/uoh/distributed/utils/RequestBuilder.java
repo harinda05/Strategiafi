@@ -18,6 +18,8 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 public class RequestBuilder
 {
@@ -32,20 +34,20 @@ public class RequestBuilder
         return String.format( Constants.MSG_FORMAT, request.length() + 5, request );
     }
 
-    public static String sendRequest( DatagramSocket datagramSocket, String request,
-                                      InetAddress address, int port ) throws IOException
+    public static String sendRequest( DatagramSocket datagramSocket, String request, InetAddress address, int port ) throws IOException
     {
 
         // Create a datagram packet to send to the Boostrap server
-        DatagramPacket datagramPacket = new DatagramPacket( request.getBytes(), request.length(), address, port );
+        byte[] compressedReq = RequestBuilder.compress( request.getBytes() );
+        DatagramPacket datagramPacket = new DatagramPacket( compressedReq, compressedReq.length, address, port );
         // Send to bootstrap server
         datagramSocket.send( datagramPacket );
         // Start listening to Bootstrap Server Response. First 4 bytes are read first to identify length of message.
         byte[] buffer = new byte[65507];
         DatagramPacket incoming = new DatagramPacket( buffer, buffer.length );
         datagramSocket.receive( incoming );
-
-        return new String( incoming.getData(), 0, incoming.getLength() );
+        byte[] data = decompress( incoming.getData() );
+        return new String( data, 0, data.length );
     }
 
     public static List<InetSocketAddress> processRegisterResponse( String response )
@@ -167,7 +169,7 @@ public class RequestBuilder
         logger.debug( "Sending response to recipient {}:{}", address, port );
 
         int packetSize = 65507; // Define your packet size
-        byte[] largeData = response.getBytes();
+        byte[] largeData = compress( response.getBytes() );
         int sequenceNumber = 0;
         /*
             Create a datagram packet to send to the recipient
@@ -191,5 +193,52 @@ public class RequestBuilder
         logger.debug( "Datagram packet sent to {}:{}", address, port );
     }
 
+    /**
+     * Compress messages using GZIP
+     * @param rawData
+     * @return
+     */
+    public static byte[] compress( byte[] rawData )
+    {
+        byte[] compressedData = null;
 
+        // Compress data using GZIP
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try (GZIPOutputStream gzipOutputStream = new GZIPOutputStream( baos ))
+        {
+            gzipOutputStream.write( rawData );
+        }
+        catch( IOException e )
+        {
+            e.printStackTrace();
+        }
+        compressedData = baos.toByteArray();
+        return compressedData;
+
+    }
+
+    /**
+     * Decompress receiving data using GZIP
+     * @param receivedData
+     * @return
+     */
+    public static byte[] decompress( byte[] receivedData )
+    {
+        byte[] decompressedData = null;
+        ByteArrayInputStream bais = new ByteArrayInputStream( receivedData );
+        try (GZIPInputStream gzipInputStream = new GZIPInputStream( bais ))
+        {
+            decompressedData = gzipInputStream.readAllBytes();
+
+            // Process or use the decompressed data here
+//            String decompressedMessage = new String( decompressedData );
+//            System.out.println( "Decompressed data: " + decompressedMessage );
+        }
+        catch( IOException e )
+        {
+            e.printStackTrace();
+        }
+
+        return decompressedData;
+    }
 }
