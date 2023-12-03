@@ -83,7 +83,7 @@ public class CLI
                             .forEach( entry -> System.out.println( entry.getNodeId() + " -> " + entry.getAddress().toString() ) );
                         break;
                     case "help":
-                        System.out.println( "stop | node | state | search | routingTable | myFiles | entryTable" );
+                        System.out.println( "stop | node | state | routingTable" );
                         break;
                     default:
                         System.out.println( "Command not identified" );

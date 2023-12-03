@@ -31,7 +31,7 @@ public class Communicator
         this.node = node;
         executorService = Executors.newCachedThreadPool();
         started = true;
-        logger.info("Communication between peers started");
+        logger.info( "Communication between peers started" );
 
     }
 
@@ -43,7 +43,7 @@ public class Communicator
         logger.debug( "Received response : {}", response );
         if( response != null )
         {
-            Object obj = RequestBuilder.base64StringToObject( response.split( Constants.MSG_SEPARATOR)[3] );
+            Object obj = RequestBuilder.base64StringToObject( response.split( Constants.MSG_SEPARATOR )[3] );
             logger.debug( "Received routing table entries -> {}", obj );
             if( obj != null )
             {
@@ -74,14 +74,14 @@ public class Communicator
             logger.debug( "Received characters to be taken over -> {}", obj );
             if( obj != null )
             {
-                return  obj;
+                return obj;
             }
         }
 
         return new HashMap<>();
     }
 
-    public Object notifyNewNode( InetSocketAddress peer, String ip , int port, int nodeId )
+    public Object notifyNewNode( InetSocketAddress peer, String ip, int port, int nodeId )
     {
         String msg = String.format( Constants.NEWNODE_MSG_FORMAT, ip, port, nodeId );
         String request = RequestBuilder.buildRequest( msg );
@@ -94,7 +94,7 @@ public class Communicator
             logger.debug( "Received characters to be taken over -> {}", obj );
             if( obj != null )
             {
-                return  obj;
+                return obj;
             }
         }
 

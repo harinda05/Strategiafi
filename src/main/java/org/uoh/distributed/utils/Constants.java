@@ -20,6 +20,7 @@ public class Constants
 
   /** Types of syncs */
   public static final String TYPE_ROUTING = "RTBL";
+  public static final String TYPE_MAP = "GMAP";
   public static final String TYPE_ENTRIES = "ETBL";
 
   /** Message commands to be used in client server communications **/
@@ -68,6 +69,11 @@ public class Constants
 
 
   public static final int ADDRESS_SPACE_SIZE = 180;
+
+  /** Default Game configurations **/
+  public static final int MAP_HEIGHT = 10;
+  public static final int MAP_WIDTH = 10;
+
 
 
 }

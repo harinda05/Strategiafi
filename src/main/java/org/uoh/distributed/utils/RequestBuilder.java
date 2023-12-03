@@ -12,7 +12,9 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -39,7 +41,7 @@ public class RequestBuilder
         // Send to bootstrap server
         datagramSocket.send( datagramPacket );
         // Start listening to Bootstrap Server Response. First 4 bytes are read first to identify length of message.
-        byte[] buffer = new byte[65536];
+        byte[] buffer = new byte[65507];
         DatagramPacket incoming = new DatagramPacket( buffer, buffer.length );
         datagramSocket.receive( incoming );
 
@@ -50,7 +52,7 @@ public class RequestBuilder
     {
         System.out.println( "Processing response : " + response );
 
-        StringTokenizer st = new StringTokenizer( response, Constants.MSG_SEPARATOR);
+        StringTokenizer st = new StringTokenizer( response, Constants.MSG_SEPARATOR );
         System.out.println( "Response length: " + st.nextToken() );
         String status = st.nextToken();
 
@@ -150,23 +152,43 @@ public class RequestBuilder
         }
     }
 
-    public static String buildObjectRequest(Object requestObject) throws IOException {
+    public static String buildObjectRequest( Object requestObject ) throws IOException
+    {
         //create a Byte Stream out of the object
-        ByteArrayOutputStream baos = new ByteArrayOutputStream( 6400);
-        ObjectOutputStream oos = new ObjectOutputStream( baos);
-        oos.writeObject(requestObject);
-        return Base64.getEncoder().encodeToString(baos.toByteArray());
+        ByteArrayOutputStream baos = new ByteArrayOutputStream( 6400 );
+        ObjectOutputStream oos = new ObjectOutputStream( baos );
+        oos.writeObject( requestObject );
+        return Base64.getEncoder().encodeToString( baos.toByteArray() );
     }
 
-    public static void sendResponse(DatagramSocket datagramSocket, String response,
-                                    InetAddress address, int port) throws IOException {
-        logger.debug("Sending response to recipient {}:{}", address, port);
+    public static void sendResponse( DatagramSocket datagramSocket, String response,
+                                     InetAddress address, int port ) throws IOException
+    {
+        logger.debug( "Sending response to recipient {}:{}", address, port );
 
-        // Create a datagram packet to send to the recipient
-        DatagramPacket datagramPacket = new DatagramPacket(response.getBytes(), response.length(), address, port);
-        // Send to recipient
-        datagramSocket.send(datagramPacket);
-        logger.debug("Datagram packet sent to {}:{}", address, port);
+        int packetSize = 65507; // Define your packet size
+        byte[] largeData = response.getBytes();
+        int sequenceNumber = 0;
+        /*
+            Create a datagram packet to send to the recipient
+            Split data into chunks and send as separate DatagramPackets
+         */
+        for( int i = 0; i < largeData.length; i += packetSize )
+        {
+            int remaining = Math.min( packetSize, largeData.length - i );
+            byte[] chunk = Arrays.copyOfRange( largeData, i, i + remaining );
+            // Include sequence number in the packet data
+            byte[] packetData = new byte[remaining + 4]; // 4 bytes for sequence number
+            ByteBuffer buffer = ByteBuffer.wrap( packetData );
+            buffer.putInt( sequenceNumber );
+            buffer.put( chunk );
+
+            DatagramPacket datagramPacket = new DatagramPacket( chunk, remaining, address, port );
+            // Send to recipient
+            datagramSocket.send( datagramPacket );
+            sequenceNumber++;
+        }
+        logger.debug( "Datagram packet sent to {}:{}", address, port );
     }
 
 
