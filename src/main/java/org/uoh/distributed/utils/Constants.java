@@ -33,6 +33,8 @@ public class Constants
   public static final String SYNC = "SYNC";
   public static final String PING = "PING";
 
+  public static final String TYPE_PAYLOAD = "TYPE_PAYLOAD"; // indicates a msg containing a game message payload
+
   /** REG ${ip} ${port} ${username} */
   public static final String REG_MSG_FORMAT = (REG+"?%s?%d?%s").replace( "?", MSG_SEPARATOR );
   /** UNREG ${ip} ${port} ${username} */
@@ -44,6 +46,7 @@ public class Constants
   /** SYNC ${type} ${serialized_object} - For syncing table entries and routing tables */
   public static final String SYNC_MSG_FORMAT = (SYNC+"?%s?%s").replace( "?", MSG_SEPARATOR );
 
+  public static final String GAME_PAYLOAD_MSG_FORMAT = (SYNC+"?%s?%s").replace( "?", MSG_SEPARATOR );
 
   /** Status Codes **/
   public static final int E0000 = 0;    // No nodes in the network
@@ -74,6 +77,9 @@ public class Constants
   public static final int MAP_HEIGHT = 10;
   public static final int MAP_WIDTH = 10;
 
+
+  /** Game Action Types **/
+  public static final String MOVE = "MOVE";
 
 
 }

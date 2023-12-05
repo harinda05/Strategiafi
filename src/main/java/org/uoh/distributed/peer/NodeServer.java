@@ -3,13 +3,14 @@ package org.uoh.distributed.peer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.uoh.distributed.peer.game.GlobalView;
+import org.uoh.distributed.peer.game.services.ClientToServerSingleton;
+import org.uoh.distributed.peer.game.services.ServerMessageConsumerFromClientService;
+import org.uoh.distributed.peer.game.utils.MulticastHandler;
 import org.uoh.distributed.utils.Constants;
 import org.uoh.distributed.utils.RequestBuilder;
 
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetSocketAddress;
+import java.net.*;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -19,13 +20,16 @@ import java.util.concurrent.TimeUnit;
 public class NodeServer
 {
 
-    private static final Logger logger = LoggerFactory.getLogger( Node.class );
+    private static final Logger logger = LoggerFactory.getLogger( NodeServer.class );
     private final int numOfRetries = Constants.RETRIES_COUNT;
 
     private boolean started = false;
     private ExecutorService executorService;
     private Node node;
     private final int port;
+
+    private final String multicastAddress = "230.0.0.0"; // ToDo: get from props
+    private final int multicastPort = 65536; // ToDo: get from props
 
 
     public NodeServer( int port )
@@ -54,6 +58,42 @@ public class NodeServer
             }
         } );
 
+        executorService.submit( () -> {
+            try
+            {
+                multicastListen();
+            }
+            catch( Exception e )
+            {
+                logger.error( "Error occurred when multicast listening", e );
+            }
+        } );
+
+        // This would actively consume the msgs from the client UI @Victor, in Client create an opposite class to ServerMessageConsumerFromClient and add the action messages to that queue
+        ClientToServerSingleton clientToServerService = ClientToServerSingleton.getInstance(); // Gets the instance from singleton class
+        MulticastHandler multicastHandler;
+        try {
+            multicastHandler = MulticastHandler.getInstance(InetAddress.getByName(multicastAddress), multicastPort);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        ServerMessageConsumerFromClientService clientToServerServiceThread = new ServerMessageConsumerFromClientService(clientToServerService, multicastHandler); // Create a ClientToServerServiceThread instance
+
+        executorService.submit( () -> {
+            try
+            {
+                clientToServerServiceThread.run();
+            }
+            catch( Exception e )
+            {
+                logger.error( "Error occurred when multicast listening", e );
+            }
+        } );
+
+
+        //ToDo: Start ServerToClientService
+
+
         started = true;
         logger.info( "Server started" );
         Runtime.getRuntime().addShutdownHook( new Thread( this::stop ) );
@@ -63,37 +103,51 @@ public class NodeServer
     {
         try (DatagramSocket datagramSocket = new DatagramSocket( port ))
         {
-            logger.debug( "Node is Listening to incoming requests" );
-
-            while( started )
-            {
-                byte[] buffer = new byte[65536];
-                DatagramPacket incoming = new DatagramPacket( buffer, buffer.length );
-                datagramSocket.receive( incoming );
-
-                byte[] rawData = incoming.getData();
-
-                byte[] data = RequestBuilder.decompress( rawData );
-                String request = new String( data, 0, data.length );
-                logger.debug( "Received from {}:{} -> {}", incoming.getAddress(), incoming.getPort(), request );
-
-                executorService.submit( () -> {
-                    try
-                    {
-                        handleRequest( request, incoming );
-                    }
-                    catch( Exception e )
-                    {
-                        logger.error( "Error occurred when handling request ({})", request, e );
-                        retryOrTimeout( Constants.RESPONSE_FAILURE, new InetSocketAddress( incoming.getAddress(), incoming.getPort() ) );
-                    }
-                } );
-            }
+            handleListen(datagramSocket);
         }
         catch( IOException e )
         {
             logger.error( "Error occurred when listening on port {}", port, e );
             throw new IllegalStateException( "Error occurred when listening", e );
+        }
+    }
+
+    public void multicastListen() {
+        try (MulticastSocket multicastSocket = new MulticastSocket(65536)){
+            InetAddress group = InetAddress.getByName(multicastAddress);
+            InetSocketAddress groupAddress = new InetSocketAddress(group, multicastSocket.getPort());
+            multicastSocket.joinGroup(groupAddress, null);
+            handleListen(multicastSocket);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void handleListen(DatagramSocket datagramSocket) throws IOException {
+        while( started )
+        {
+            logger.debug( "Node is Listening to incoming requests" );
+            byte[] buffer = new byte[65536];
+            DatagramPacket incoming = new DatagramPacket( buffer, buffer.length );
+            datagramSocket.receive( incoming );
+
+            byte[] rawData = incoming.getData();
+
+            byte[] data = RequestBuilder.decompress( rawData );
+            String request = new String( data, 0, data.length );
+            logger.debug( "Received from {}:{} -> {}", incoming.getAddress(), incoming.getPort(), request );
+
+            executorService.submit( () -> {
+                try
+                {
+                    handleRequest( request, incoming );
+                }
+                catch( Exception e )
+                {
+                    logger.error( "Error occurred when handling request ({})", request, e );
+                    retryOrTimeout( Constants.RESPONSE_FAILURE, new InetSocketAddress( incoming.getAddress(), incoming.getPort() ) );
+                }
+            } );
         }
     }
 
@@ -133,6 +187,10 @@ public class NodeServer
             case Constants.SYNC:
                 handleSyncRequest( incomingResult[2], recipient );
                 break;
+            case Constants.TYPE_PAYLOAD:
+                handlePayload(incomingResult[2], recipient);
+                break;
+
             default:
                 break;
         }
@@ -288,5 +346,14 @@ public class NodeServer
         /*
               Need to implement what we need to share
          */
+    }
+
+    private void handlePayload(String request, InetSocketAddress recipient ){
+        logger.debug( "Received game payload -> {}", request );
+        String[] parts = request.split( Constants.MSG_SEPARATOR );
+
+        Object obj = RequestBuilder.base64StringToObject( parts[1] );
+        logger.debug( "Received characters to be taken over -> {}", obj );
+
     }
 }
