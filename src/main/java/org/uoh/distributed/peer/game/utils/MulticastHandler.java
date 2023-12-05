@@ -13,13 +13,15 @@ public class MulticastHandler {
     private final InetAddress multicastGroupAddress;
     private final int multicastGroupPort;
 
+    public MulticastSocket getMulticastSocket() {
+        return multicastSocket;
+    }
     private MulticastHandler(InetAddress multicastGroupAddress, int multicastGroupPort) throws IOException {
         this.multicastSocket = new MulticastSocket(multicastGroupPort);
         this.multicastGroupAddress = multicastGroupAddress;
         this.multicastGroupPort = multicastGroupPort;
-
-        InetSocketAddress groupAddress = new InetSocketAddress(multicastGroupAddress, multicastSocket.getPort());
-        multicastSocket.joinGroup(groupAddress, null);
+        InetAddress group = InetAddress.getByName(multicastGroupAddress.getHostAddress());
+        multicastSocket.joinGroup(group);
     }
 
     public static MulticastHandler getInstance(InetAddress multicastGroupAddress, int multicastGroupPort) throws IOException {
@@ -35,7 +37,4 @@ public class MulticastHandler {
         multicastSocket.send(packet);
     }
 
-    public void listenMulticastMessage(String message) throws IOException {
-        // Implement multicast message listening
-    }
 }

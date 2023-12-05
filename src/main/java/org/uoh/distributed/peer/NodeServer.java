@@ -29,7 +29,7 @@ public class NodeServer
     private final int port;
 
     private final String multicastAddress = "230.0.0.0"; // ToDo: get from props
-    private final int multicastPort = 65536; // ToDo: get from props
+    private final int multicastPort = 5383; // ToDo: get from props
 
 
     public NodeServer( int port )
@@ -45,6 +45,8 @@ public class NodeServer
             return;
         }
 
+        started = true;
+
         this.node = node;
         executorService = Executors.newCachedThreadPool();
         executorService.submit( () -> {
@@ -58,17 +60,6 @@ public class NodeServer
             }
         } );
 
-        executorService.submit( () -> {
-            try
-            {
-                multicastListen();
-            }
-            catch( Exception e )
-            {
-                logger.error( "Error occurred when multicast listening", e );
-            }
-        } );
-
         // This would actively consume the msgs from the client UI @Victor, in Client create an opposite class to ServerMessageConsumerFromClient and add the action messages to that queue
         ClientToServerSingleton clientToServerService = ClientToServerSingleton.getInstance(); // Gets the instance from singleton class
         MulticastHandler multicastHandler;
@@ -77,6 +68,18 @@ public class NodeServer
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
+        executorService.submit( () -> {
+            try
+            {
+                multicastListen(multicastHandler.getMulticastSocket());
+            }
+            catch( Exception e )
+            {
+                logger.error( "Error occurred when multicast listening", e );
+            }
+        } );
+
         ServerMessageConsumerFromClientService clientToServerServiceThread = new ServerMessageConsumerFromClientService(clientToServerService, multicastHandler); // Create a ClientToServerServiceThread instance
 
         executorService.submit( () -> {
@@ -93,8 +96,6 @@ public class NodeServer
 
         //ToDo: Start ServerToClientService
 
-
-        started = true;
         logger.info( "Server started" );
         Runtime.getRuntime().addShutdownHook( new Thread( this::stop ) );
     }
@@ -103,7 +104,7 @@ public class NodeServer
     {
         try (DatagramSocket datagramSocket = new DatagramSocket( port ))
         {
-            handleListen(datagramSocket);
+            handleListen(datagramSocket, "unicast");
         }
         catch( IOException e )
         {
@@ -112,21 +113,18 @@ public class NodeServer
         }
     }
 
-    public void multicastListen() {
-        try (MulticastSocket multicastSocket = new MulticastSocket(65536)){
-            InetAddress group = InetAddress.getByName(multicastAddress);
-            InetSocketAddress groupAddress = new InetSocketAddress(group, multicastSocket.getPort());
-            multicastSocket.joinGroup(groupAddress, null);
-            handleListen(multicastSocket);
+    public void multicastListen(MulticastSocket multicastSocket) {
+        try{
+            handleListen(multicastSocket, "multicast");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private void handleListen(DatagramSocket datagramSocket) throws IOException {
+    private void handleListen(DatagramSocket datagramSocket, String type) throws IOException {
         while( started )
         {
-            logger.debug( "Node is Listening to incoming requests" );
+            logger.info( "Node is Listening to incoming requests - {}",  type );
             byte[] buffer = new byte[65536];
             DatagramPacket incoming = new DatagramPacket( buffer, buffer.length );
             datagramSocket.receive( incoming );
