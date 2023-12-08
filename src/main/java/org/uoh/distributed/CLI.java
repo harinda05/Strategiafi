@@ -2,6 +2,7 @@ package org.uoh.distributed;
 
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
+import org.uoh.distributed.game.Foobar;
 import org.uoh.distributed.peer.Communicator;
 import org.uoh.distributed.peer.Node;
 import org.uoh.distributed.peer.NodeServer;
@@ -14,12 +15,11 @@ import java.util.UUID;
 
 public class CLI
 {
-
-
     public static void main( String[] args ) throws UnknownHostException
     {
         CmdLineOptions options = new CmdLineOptions();
         CmdLineParser parser = new CmdLineParser( options );
+        new Foobar();
 
         try
         {
