@@ -89,7 +89,7 @@ public class NodeServer
             }
             catch( Exception e )
             {
-                logger.error( "Error occurred when multicast listening", e );
+                logger.error( "Error occurred when multicast sending", e );
             }
         } );
 
