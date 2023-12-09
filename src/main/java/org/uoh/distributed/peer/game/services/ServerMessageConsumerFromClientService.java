@@ -28,7 +28,7 @@ public class ServerMessageConsumerFromClientService implements Runnable{
                 logger.info("Server received message: {}" , message);
 
                 try {
-                    String msg = String.format( Constants.GAME_PAYLOAD_MSG_FORMAT, Constants.TYPE_PAYLOAD, Arrays.toString(RequestBuilder.compress(RequestBuilder.buildObjectRequest(message).getBytes())));
+                    String msg = String.format( Constants.GAME_PAYLOAD_MSG_FORMAT, message.getType(), RequestBuilder.buildObjectRequest(message));
                     multicastHandler.sendMulticastMessage(msg);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
