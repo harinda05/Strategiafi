@@ -1,9 +1,6 @@
 package org.uoh.distributed.peer.game.utils;
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.MulticastSocket;
+import java.net.*;
 
 public class MulticastHandler {
 
@@ -21,6 +18,7 @@ public class MulticastHandler {
         this.multicastGroupAddress = multicastGroupAddress;
         this.multicastGroupPort = multicastGroupPort;
         InetAddress group = InetAddress.getByName(multicastGroupAddress.getHostAddress());
+        multicastSocket.setOption(StandardSocketOptions.IP_MULTICAST_LOOP, false);
         multicastSocket.joinGroup(group);
     }
 

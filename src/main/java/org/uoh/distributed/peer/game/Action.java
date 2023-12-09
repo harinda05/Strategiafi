@@ -1,6 +1,8 @@
 package org.uoh.distributed.peer.game;
 
-public class Action {
+import java.io.Serializable;
+
+public class Action implements Serializable {
     private String type;
 
     public String getType() {

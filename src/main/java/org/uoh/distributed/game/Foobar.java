@@ -1,8 +1,13 @@
 package org.uoh.distributed.game;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.uoh.distributed.peer.game.Coin;
 import org.uoh.distributed.peer.game.GlobalView;
 import org.uoh.distributed.peer.game.Player;
+import org.uoh.distributed.peer.game.actionmsgs.MoveMsg;
+import org.uoh.distributed.peer.game.services.ClientToServerSingleton;
+import org.uoh.distributed.peer.game.services.ServerMessageConsumerFromClientService;
 
 import javax.swing.*;
 import java.awt.*;
@@ -17,10 +22,13 @@ import java.awt.event.KeyListener;
  */
 public class Foobar extends JFrame {
 
+    ClientToServerSingleton clientToServerService = ClientToServerSingleton.getInstance(); // Gets the instance from singleton class
+
+    private static final Logger logger = LoggerFactory.getLogger( Foobar.class );
     private final int gridSize = 10; // size of the grid
     private final int cellSize = 40; // pixel size of each grid cell
 
-    private static class Game extends JPanel implements KeyListener, ActionListener {
+    private class Game extends JPanel implements KeyListener, ActionListener {
         private Player localPlayer;
         private GlobalView map;
 
@@ -55,11 +63,12 @@ public class Foobar extends JFrame {
         @Override
         public void keyPressed(KeyEvent e) {
             localPlayer.move(e.getKeyCode());
+            logger.info("current location: {} , {}", localPlayer.getX(), localPlayer.getY());
+            clientToServerService.produce(new MoveMsg(localPlayer.getX(), localPlayer.getY()));
         }
 
         @Override
         public void keyReleased(KeyEvent e) {
-
         }
 
         @Override
