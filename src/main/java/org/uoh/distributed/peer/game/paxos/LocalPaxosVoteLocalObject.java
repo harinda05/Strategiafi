@@ -3,12 +3,12 @@ package org.uoh.distributed.peer.game.paxos;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serializable;
 
-public class LocalPaxosVoteLocalObject {
+@Setter
+@Getter
+public class LocalPaxosVoteLocalObject implements Serializable {
     private final PaxosProposal paxosProposal;
-
-    @Setter
-    @Getter
     private PaxosVoteStatus status;
 
     LocalPaxosVoteLocalObject(PaxosProposal paxosProposal, PaxosVoteStatus status){

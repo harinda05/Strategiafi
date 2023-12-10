@@ -37,6 +37,8 @@ public class Constants
 
   public static final String VOTE_REQUEST = "VOTE_REQUEST";
 
+  public static final String VOTE_RESPONSE = "VOTE_RESPONSE";
+
   public static final String TYPE_PAYLOAD = "TYPE_PAYLOAD"; // indicates a msg containing a game message payload
 
   /** REG ${ip} ${port} ${username} */
@@ -52,6 +54,7 @@ public class Constants
 
   public static final String GAME_PAYLOAD_MSG_FORMAT = (GAME_ACTION+"?%s?%s").replace( "?", MSG_SEPARATOR );
   public static final String PAXOS_VOTE_REQUEST_MSG_FORMAT = (VOTE_REQUEST+"?%s?%s").replace( "?", MSG_SEPARATOR );
+  public static final String PAXOS_VOTE_RESPONSE_MSG_FORMAT = (VOTE_RESPONSE+"?%s?%s").replace( "?", MSG_SEPARATOR );
 
   /** Status Codes **/
   public static final int E0000 = 0;    // No nodes in the network

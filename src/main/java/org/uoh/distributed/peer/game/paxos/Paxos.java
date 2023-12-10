@@ -13,9 +13,12 @@ import org.uoh.distributed.utils.RequestBuilder;
 import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+
+import static org.uoh.distributed.utils.Constants.CONSUME_RESOURCE_PROPOSAL;
 
 public class Paxos {
     private static final Logger logger = LoggerFactory.getLogger( Paxos.class );
@@ -23,7 +26,8 @@ public class Paxos {
     private int proposalNumberOut = 0;
 
     // The Paxos instance needs to know about all nodes in the distributed system.
-    private Map<String, ResourceProposalPaxosObject> voteRequestsSent = new ConcurrentHashMap<>();
+    private Map<String, Integer> proposalRequiredQuorumMaintainer = new ConcurrentHashMap<>();
+    private Map<String, Integer> actualQuorumMaintainer = new ConcurrentHashMap<>();
 
     private Map<String, LocalPaxosVoteLocalObject> voteRequestsReceived = new ConcurrentHashMap<>();
     private static Paxos instance;
@@ -61,18 +65,23 @@ public class Paxos {
     }
 
     // Method to handle receiving Paxos vote request
-    public void handleIncomingPaxosVoteRequest(PaxosProposal paxosProposal) {
+    public void handleIncomingPaxosVoteRequest(PaxosProposal paxosProposal, InetSocketAddress recipient) {
         // Logic to handle receiving Paxos vote request
 
         switch (paxosProposal.getProposalType()){
-            case Constants.CONSUME_RESOURCE_PROPOSAL:
+            case CONSUME_RESOURCE_PROPOSAL:
                 ResourceProposalPaxosObject resourceProposalPaxosObject = (ResourceProposalPaxosObject) paxosProposal;
                 if(voteRequestsReceived.get(resourceProposalPaxosObject.getResourceId()) == null){
                     voteRequestsReceived.put(resourceProposalPaxosObject.getResourceId(), new LocalPaxosVoteLocalObject(resourceProposalPaxosObject, PaxosVoteStatus.PENDING));
 
                     logger.info("Votinggggggggggggggggggggggg");
-                    //Todo: send the vote response here
                     voteRequestsReceived.get(resourceProposalPaxosObject.getResourceId()).setStatus(PaxosVoteStatus.ACCEPTED);
+                    try(DatagramSocket datagramSocket = new DatagramSocket()){
+                        String request = String.format(Constants.PAXOS_VOTE_RESPONSE_MSG_FORMAT, CONSUME_RESOURCE_PROPOSAL, RequestBuilder.buildObjectRequest(voteRequestsReceived.get(resourceProposalPaxosObject.getResourceId())));
+                        RequestBuilder.sendRequest(datagramSocket, request, recipient.getAddress(), recipient.getPort());
+                    } catch (Exception e){
+                        logger.error("Exception occurred when sending vote to Paxos Initializer -> {}", e.getMessage());
+                    }
                     System.out.println(voteRequestsReceived.get(resourceProposalPaxosObject.getResourceId()).getStatus());
                 } else {
                     //Todo: implement
@@ -81,11 +90,19 @@ public class Paxos {
     }
 
     // Method to handle receiving Paxos vote
-    private void receivePaxosVote(Player proposer, GameObject resource, boolean vote) {
-        // Logic to handle receiving Paxos vote
-        // You may need to implement the Paxos algorithm here
+    public void receivePaxosVote(LocalPaxosVoteLocalObject localPaxosVoteLocalObject) {
 
-        // For simplicity, let's assume the proposer collects votes and decides
+        // Logic to handle receiving Paxos vote
+        int minimumVoteCount = proposalRequiredQuorumMaintainer.get(String.valueOf(localPaxosVoteLocalObject.getPaxosProposal().getProposalNumber()));
+        if (localPaxosVoteLocalObject.getStatus() == PaxosVoteStatus.ACCEPTED){
+            Integer currentVoteCount = actualQuorumMaintainer.get(String.valueOf(localPaxosVoteLocalObject.getPaxosProposal().getProposalNumber()));
+            if (currentVoteCount + 1 >= minimumVoteCount){
+                //ToDo: Vote Succeeded ----> Do the task for UI
+                //ToDo: Commit the message to teh network. // can multicast here
+            } else {
+                actualQuorumMaintainer.put(String.valueOf(localPaxosVoteLocalObject.getPaxosProposal().getProposalNumber()), currentVoteCount + 1);
+            }
+        }
     }
 }
 

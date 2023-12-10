@@ -4,12 +4,10 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serializable;
-
+@Getter
+@Setter
 public class PaxosProposal implements Serializable {
     private int proposalNumber;
-
-    @Getter
-    @Setter
     private String proposalType;
 
     public PaxosProposal(int proposalNumber) {
