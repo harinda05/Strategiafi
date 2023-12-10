@@ -1,4 +1,6 @@
 package org.uoh.distributed.peer.game.utils;
+import org.uoh.distributed.utils.RequestBuilder;
+
 import java.io.IOException;
 import java.net.*;
 
@@ -30,7 +32,7 @@ public class MulticastHandler {
     }
 
     public void sendMulticastMessage(String message) throws IOException {
-        byte[] messageData = message.getBytes();
+        byte[] messageData = RequestBuilder.compress( message.getBytes() );
         DatagramPacket packet = new DatagramPacket(messageData, messageData.length, multicastGroupAddress, multicastGroupPort);
         multicastSocket.send(packet);
     }

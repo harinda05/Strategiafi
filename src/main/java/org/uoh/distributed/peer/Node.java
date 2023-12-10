@@ -3,13 +3,13 @@ package org.uoh.distributed.peer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.uoh.distributed.peer.game.GlobalView;
-import org.uoh.distributed.peer.game.Coin;
 import org.uoh.distributed.utils.Constants;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
@@ -28,6 +28,8 @@ public class Node
     private final String username;
     private final String ipAddress;
     private final int port;
+    private final String bootstrapIpAddress;
+    private final int bootstrapPort;
     private int nodeId;
     private final RoutingTable routingTable = new RoutingTable();
     private boolean isLeader;
@@ -57,16 +59,18 @@ public class Node
 
     public Node( int port, String ipAddress, Communicator communicationProvider, NodeServer server )
     {
-        this( port, ipAddress, UUID.randomUUID().toString(), communicationProvider, server );
+        this( port, ipAddress, UUID.randomUUID().toString(), communicationProvider, server , null, -1);
     }
 
-    public Node( int port, String ipAddress, String username, Communicator communicationProvider, NodeServer server )
+    public Node( int port, String ipAddress, String username, Communicator communicationProvider, NodeServer server , String boostrapIp, int bootstrapPort)
     {
         this.port = port;
         this.ipAddress = ipAddress;
         this.username = username;
         this.communicationProvider = communicationProvider;
         this.server = server;
+        this.bootstrapPort = bootstrapPort;
+        this.bootstrapIpAddress = boostrapIp;
     }
 
     public void start()
@@ -103,7 +107,8 @@ public class Node
 
         }
         // 1. Select a Node Name
-        this.nodeId = selectNodeName();
+//        this.nodeId = selectNodeName();
+        this.nodeId = Integer.parseInt( username );
         logger.info( "Selected node ID -> {}", this.nodeId );
 
         // 2. Add my node to my routing table
@@ -143,7 +148,7 @@ public class Node
         List<InetSocketAddress> peers = null;
         try
         {
-            peers = bootstrapProvider.register( ipAddress, port, username );
+            peers = bootstrapProvider.register( ipAddress, port, username, bootstrapIpAddress, bootstrapPort );
         }
         catch( IOException e )
         {
@@ -183,6 +188,13 @@ public class Node
             1) Load global map
             2) If need to join to chord then join
          */
+        Optional<RoutingTableEntry> entry =this.routingTable.getEntries().stream().findFirst();
+        if( entry.isPresent() && routingTable.getEntries().size()>1 && false)
+        {
+           Object map =  communicationProvider.sync( entry.get().getAddress(),Constants.TYPE_MAP );
+
+           gameMap = (GlobalView) map;
+        }
 
     }
 
@@ -263,7 +275,6 @@ public class Node
         try
         {
             logger.debug( "Initialized the global map -> {}", gameMap );
-
         }
         catch( Exception e )
         {

@@ -9,11 +9,13 @@ public class MoveMsg extends Action {
 
     private String xIndex;
     private String yIndex;
+    private String actor;
 
-    public MoveMsg(int x, int y){
+    public MoveMsg(int x, int y, String user){
         this.xIndex = String.valueOf(x);
         this.yIndex = String.valueOf(y);
         this.setType(Constants.MOVE);
+        this.actor = user;
     }
     @Override
     public String getType() {
@@ -39,5 +41,15 @@ public class MoveMsg extends Action {
 
     public void setyIndex(String yIndex) {
         this.yIndex = yIndex;
+    }
+
+    public String getActor()
+    {
+        return actor;
+    }
+
+    public void setActor( String actor )
+    {
+        this.actor = actor;
     }
 }

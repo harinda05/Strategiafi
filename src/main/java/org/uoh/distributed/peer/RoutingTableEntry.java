@@ -14,6 +14,7 @@ public class RoutingTableEntry implements Serializable
 
     private InetSocketAddress address;
     private int nodeId;
+    private boolean isLeader;
 
     public RoutingTableEntry() { }
 
