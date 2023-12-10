@@ -163,6 +163,24 @@ public class Communicator
         return null;
     }
 
+    public Object sync( InetSocketAddress peer, String type )
+    {
+        String msg = String.format( Constants.SYNC_MSG_FORMAT, type, "" );
+        String request = RequestBuilder.buildRequest( msg );
+        logger.debug( "Sync -> {}", peer );
+        String response = retryOrTimeout( 1, request, peer );
+        logger.debug( "Received response : {}", response );
+        if( response != null )
+        {
+            Object obj = RequestBuilder.base64StringToObject( response );
+            logger.debug( "Received entry table of ({}) -> {}", peer, obj );
+            if( obj != null )
+            {
+                return (Object) obj;
+            }
+        }
+        return null;
+    }
 
     public Object ping( InetSocketAddress peer, Object toBeHandedOver )
     {

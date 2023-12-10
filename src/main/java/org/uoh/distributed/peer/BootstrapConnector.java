@@ -25,7 +25,7 @@ public class BootstrapConnector
     {
     }
 
-    public List<InetSocketAddress> register( String ipAddress, int port, String username ) throws SocketException
+    public List<InetSocketAddress> register( String ipAddress, int port, String username, String boostrapIp, int bootstrapPort ) throws SocketException
     {
         logger.debug( "Registering node" );
 
@@ -37,7 +37,9 @@ public class BootstrapConnector
         {
             try (DatagramSocket datagramSocket = new DatagramSocket())
             {
-                String response = RequestBuilder.sendRequest( datagramSocket, request, InetAddress.getByName( Constants.BOOTSTRAP_IP ), Constants.BOOTSTRAP_PORT );
+                String bIp = boostrapIp != null ? boostrapIp : Constants.BOOTSTRAP_IP;
+                int bPort = bootstrapPort > 0 ? bootstrapPort : Constants.BOOTSTRAP_PORT;
+                String response = RequestBuilder.sendRequest( datagramSocket, request, InetAddress.getByName( bIp ), bPort );
                 logger.debug( "Response received : {}", response );
                 return RequestBuilder.processRegisterResponse( response );
             }

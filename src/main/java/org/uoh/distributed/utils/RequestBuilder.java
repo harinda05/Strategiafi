@@ -149,7 +149,7 @@ public class RequestBuilder
         }
         catch( Exception e )
         {
-            logger.error( "Error occurred when obtaining routing table", e );
+            logger.error( "Error occurred when decoding object -> ", e );
             return null;
         }
     }
