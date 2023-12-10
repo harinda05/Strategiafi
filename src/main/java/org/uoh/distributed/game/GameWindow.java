@@ -45,7 +45,7 @@ public class GameWindow extends JFrame
     private void initGUI()
     {
         this.setLayout( new GridBagLayout() );
-        gamePanel = new GamePanel( cellSize, gridSize );
+        gamePanel = new GamePanel( cellSize, gridSize, node );
         loggerPanel = new LoggerPanel();
         nodeList = new javax.swing.JList<>();
 

@@ -2,6 +2,7 @@ package org.uoh.distributed.game;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.uoh.distributed.peer.Node;
 import org.uoh.distributed.peer.game.Coin;
 import org.uoh.distributed.peer.game.GlobalView;
 import org.uoh.distributed.peer.game.Player;
@@ -29,10 +30,13 @@ public class GamePanel extends JPanel implements KeyListener, ActionListener {
         private GlobalView map;
         private String playerName;
 
+        private Node node;
+
         /** Implements the refresh rate) */
         private Timer timer;
 
-        public GamePanel(int cellSize, int gridSize) {
+        public GamePanel(int cellSize, int gridSize, Node node) {
+            this.node = node;
 //            localPlayer = new Player(playerName, 0, 0);
             map = new GlobalView(gridSize, gridSize, cellSize);
 //            map.addObject(localPlayer);
@@ -60,8 +64,11 @@ public class GamePanel extends JPanel implements KeyListener, ActionListener {
         @Override
         public void keyPressed(KeyEvent e) {
             localPlayer.move(e.getKeyCode());
-            logger.info("current location: {} , {}", localPlayer.getX(), localPlayer.getY());
-            clientToServerService.produce( new MoveMsg( localPlayer.getX(), localPlayer.getY(), playerName ) );
+
+            if(localPlayer.getName().equals(node.getUsername())){
+                logger.info("current location: {} , {}", localPlayer.getX(), localPlayer.getY());
+                clientToServerService.produce( new MoveMsg( localPlayer.getX(), localPlayer.getY(), playerName ) );
+            }
         }
 
         @Override
