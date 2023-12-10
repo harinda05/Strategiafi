@@ -3,6 +3,8 @@ package org.uoh.distributed.peer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.uoh.distributed.peer.game.GlobalView;
+import org.uoh.distributed.peer.game.paxos.Paxos;
+import org.uoh.distributed.peer.game.paxos.PaxosProposal;
 import org.uoh.distributed.peer.game.services.ClientToServerSingleton;
 import org.uoh.distributed.peer.game.services.ServerMessageConsumerFromClientService;
 import org.uoh.distributed.peer.game.utils.MulticastHandler;
@@ -30,6 +32,8 @@ public class NodeServer
 
     private final String multicastAddress = "230.0.0.0"; // ToDo: get from props
     private final int multicastPort = 5383; // ToDo: get from props
+
+    private final Paxos paxos = Paxos.getInstance();
 
 
     public NodeServer( int port )
@@ -80,7 +84,7 @@ public class NodeServer
             }
         } );
 
-        ServerMessageConsumerFromClientService clientToServerServiceThread = new ServerMessageConsumerFromClientService(clientToServerService, multicastHandler); // Create a ClientToServerServiceThread instance
+        ServerMessageConsumerFromClientService clientToServerServiceThread = new ServerMessageConsumerFromClientService(clientToServerService, multicastHandler, this.node); // Create a ClientToServerServiceThread instance
 
         executorService.submit( () -> {
             try
@@ -188,6 +192,9 @@ public class NodeServer
             case Constants.TYPE_PAYLOAD:
                 handlePayload(incomingResult[2], recipient);
                 break;
+
+            case Constants.VOTE_REQUEST:
+                handlePaxosVoteRequest(incomingResult[2], recipient);
 
             default:
                 break;
@@ -353,5 +360,19 @@ public class NodeServer
         Object obj = RequestBuilder.base64StringToObject( parts[1] );
         logger.debug( "Received characters to be taken over -> {}", obj );
 
+    }
+
+    private void handlePaxosVoteRequest(String request, InetSocketAddress recipient){
+        logger.debug( "Received vote request -> {}", request );
+        String[] parts = request.split( Constants.MSG_SEPARATOR );
+
+        Object obj = RequestBuilder.base64StringToObject( parts[1] );
+        logger.debug( "Received characters to be taken over -> {}", obj );
+
+        if(obj instanceof PaxosProposal){
+            paxos.handleIncomingPaxosVoteRequest((PaxosProposal) obj);
+        } else {
+            logger.error("Object is not type of PaxosProposal");
+        }
     }
 }

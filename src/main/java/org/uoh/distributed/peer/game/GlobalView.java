@@ -3,6 +3,8 @@ package org.uoh.distributed.peer.game;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.uoh.distributed.peer.game.actionmsgs.ConsumeResourceMsg;
+import org.uoh.distributed.peer.game.services.ClientToServerSingleton;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.awt.*;
@@ -35,6 +37,9 @@ public class GlobalView implements Serializable
     @Setter
     private long logicClock;
 
+    ClientToServerSingleton clientToServerService = ClientToServerSingleton.getInstance(); // Gets the instance from singleton class
+
+
     public GlobalView(int width, int height, int cellSize)
     {
         this.width = width;
@@ -65,6 +70,9 @@ public class GlobalView implements Serializable
             final int key = p.gameObjectHash();
             if (gameObjects.containsKey(key)) {
                 GameObject object = gameObjects.get(key);
+
+                // Initiate a Paxos voting for the resources.
+                clientToServerService.produce(new ConsumeResourceMsg(String.valueOf(key)));
                 object.interact(p);
                 gameObjects.remove(key);
             }
