@@ -26,6 +26,7 @@ public class Player extends GameObject {
 
     @Override
     void paint(Graphics g, int cellSize) {
+        g.setColor( getColor() );
         g.fillOval(this.getX() * cellSize, this.getY() * cellSize, cellSize, cellSize);
     }
 
@@ -56,5 +57,23 @@ public class Player extends GameObject {
     public int gameObjectHash() {
         int tmp = (y + ((x + 1) / 2));
         return x + (tmp * tmp);
+    }
+
+    private Color getColor(){
+
+        // Map the number to a hue value in the range of 0.0 to 1.0
+        float hue = 0;
+        if( name == null )
+        {
+            hue = 10;
+        }
+        else
+        {
+            hue = Integer.parseInt( name ) / 1000.0f;
+        }
+
+        // Create a color with the mapped hue, maximum saturation, and brightness
+        Color color = Color.getHSBColor( hue, 1.0f, 1.0f );
+        return color;
     }
 }

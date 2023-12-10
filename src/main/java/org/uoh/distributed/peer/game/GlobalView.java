@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.Setter;
 import org.uoh.distributed.peer.game.actionmsgs.ConsumeResourceMsg;
 import org.uoh.distributed.peer.game.services.ClientToServerSingleton;
+import org.uoh.distributed.peer.game.actionmsgs.MoveMsg;
+import org.uoh.distributed.utils.Constants;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.awt.*;
@@ -12,6 +14,7 @@ import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 @XmlRootElement
@@ -91,5 +94,33 @@ public class GlobalView implements Serializable
         } else {
             gameObjects.put(object.hashCode(), object);
         }
+    }
+
+    public void reflectAction( Action action )
+    {
+        switch( action.getType() )
+        {
+            case Constants.MOVE:
+                movePlayer( (MoveMsg) action );
+                break;
+            default:
+                break;
+
+        }
+    }
+
+    private void movePlayer( MoveMsg move )
+    {
+        Optional<Player> player = players.stream().filter( p -> p.getName().equals( move.getActor() ) ).findFirst();
+        if( player.isPresent() )
+        {
+            player.get().setX( Integer.parseInt( move.getxIndex() ) );
+            player.get().setY( Integer.parseInt( move.getyIndex() ) );
+        }
+        else
+        {
+            players.add( new Player( move.getActor(), Integer.parseInt( move.getxIndex() ), Integer.parseInt( move.getyIndex() ) ) );
+        }
+
     }
 }

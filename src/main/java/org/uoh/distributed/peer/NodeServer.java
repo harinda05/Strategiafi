@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.uoh.distributed.peer.game.GlobalView;
 import org.uoh.distributed.peer.game.paxos.Paxos;
 import org.uoh.distributed.peer.game.paxos.PaxosProposal;
+import org.uoh.distributed.peer.game.actionmsgs.MoveMsg;
 import org.uoh.distributed.peer.game.services.ClientToServerSingleton;
 import org.uoh.distributed.peer.game.services.ServerMessageConsumerFromClientService;
 import org.uoh.distributed.peer.game.utils.MulticastHandler;
@@ -189,6 +190,9 @@ public class NodeServer
             case Constants.SYNC:
                 handleSyncRequest( incomingResult[2], recipient );
                 break;
+            case Constants.MOVE:
+                handleMoveRequest( incomingResult[2], recipient );
+                break;
             case Constants.TYPE_PAYLOAD:
                 handlePayload(incomingResult[2], recipient);
                 break;
@@ -312,15 +316,27 @@ public class NodeServer
     {
         logger.debug( "Received sync request -> {}", request );
         String[] parts = request.split( Constants.MSG_SEPARATOR );
-
-        Object obj = RequestBuilder.base64StringToObject( parts[1] );
+        Object obj = null;
+        boolean sendData = true;  // need to send data back
+        if(parts.length>1)
+        {
+            sendData = false;
+            obj = RequestBuilder.base64StringToObject( parts[1] );
+        }
         switch( parts[0] )
         {
             case Constants.TYPE_MAP:
                 logger.debug( "Received map to be taken over -> {}", obj );
                 try
                 {
-                    syncMap( (GlobalView) obj );
+                    if( sendData )
+                    {
+                        shareGlobalMap( recipient );
+                    }
+                    else
+                    {
+                        syncMap( (GlobalView) obj );
+                    }
                 }
                 catch( Exception e )
                 {
@@ -341,7 +357,7 @@ public class NodeServer
     private void syncMap( GlobalView map )
     {
         logger.debug( "Received map -> {}", map );
-        node.setGameMap( map );
+//        node.setGameMap( map );
 
     }
 
@@ -375,4 +391,15 @@ public class NodeServer
             logger.error("Object is not type of PaxosProposal");
         }
     }
+
+    private void handleMoveRequest( String request, InetSocketAddress recipient )
+    {
+        String[] parts = request.split( Constants.MSG_SEPARATOR );
+        String ipAddress = recipient.getAddress().getHostAddress();
+
+        MoveMsg moveMsg = (MoveMsg) RequestBuilder.base64StringToObject( parts[0] );
+
+        node.getGameMap().reflectAction( moveMsg );
+    }
+
 }
