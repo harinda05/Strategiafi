@@ -2,10 +2,12 @@ package org.uoh.distributed.peer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.uoh.distributed.peer.game.GameObject;
 import org.uoh.distributed.peer.game.GlobalView;
 import org.uoh.distributed.peer.game.paxos.LocalPaxosVoteLocalObject;
 import org.uoh.distributed.peer.game.paxos.Paxos;
 import org.uoh.distributed.peer.game.paxos.PaxosProposal;
+import org.uoh.distributed.peer.game.actionmsgs.GrabResourceMsg;
 import org.uoh.distributed.peer.game.actionmsgs.MoveMsg;
 import org.uoh.distributed.peer.game.services.ClientToServerSingleton;
 import org.uoh.distributed.peer.game.services.ServerMessageConsumerFromClientService;
@@ -194,6 +196,9 @@ public class NodeServer
             case Constants.MOVE:
                 handleMoveRequest( incomingResult[2], recipient );
                 break;
+            case Constants.GRAB:
+                handleResourceGrab( incomingResult[2], recipient );
+                break;
             case Constants.TYPE_PAYLOAD:
                 handlePayload(incomingResult[2], recipient);
                 break;
@@ -361,7 +366,18 @@ public class NodeServer
     private void syncMap( GlobalView map )
     {
         logger.debug( "Received map -> {}", map );
-//        node.setGameMap( map );
+        for( GameObject c : map.getGameObjects().values() )
+        {
+            if( node.getGameMap().getGameObjects().get( c.hashCode() ) == null ) // if the reward not there then add it Otherwise remove it from node map
+            {
+                node.getGameMap().addObject( c );
+            }
+            else
+            {
+                node.getGameMap().getGameObjects().remove( c.hashCode() );
+            }
+        }
+
 
     }
 
@@ -418,6 +434,16 @@ public class NodeServer
         MoveMsg moveMsg = (MoveMsg) RequestBuilder.base64StringToObject( parts[0] );
 
         node.getGameMap().reflectAction( moveMsg );
+    }
+
+    private void handleResourceGrab( String request, InetSocketAddress recipient )
+    {
+        String[] parts = request.split( Constants.MSG_SEPARATOR );
+        String ipAddress = recipient.getAddress().getHostAddress();
+
+        GrabResourceMsg resourceMsg = (GrabResourceMsg) RequestBuilder.base64StringToObject( parts[0] );
+
+        node.getGameMap().reflectAction( resourceMsg );
     }
 
 }

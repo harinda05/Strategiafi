@@ -67,4 +67,12 @@ public class RoutingTableEntry implements Serializable
     public String toString() {
         return String.format( "[%d -> %s]", nodeId, address);
     }
+
+    public boolean isLeader() {
+        return isLeader;
+    }
+
+    public void setLeader(boolean leader) {
+        isLeader = leader;
+    }
 }

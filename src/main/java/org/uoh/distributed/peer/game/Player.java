@@ -10,7 +10,7 @@ public class Player extends GameObject {
     @Getter
     private final String name;
 
-    @Getter
+    @Getter @Setter
     private int score;
 
     public Player(String name, int x, int y) {
@@ -52,6 +52,11 @@ public class Player extends GameObject {
 
     public void incrementScore() {
         score++;
+    }
+
+    public void incrementScore( int value )
+    {
+        score = score + value;
     }
 
     public int gameObjectHash() {
