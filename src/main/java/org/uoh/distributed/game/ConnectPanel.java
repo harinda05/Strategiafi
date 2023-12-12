@@ -103,6 +103,14 @@ public class ConnectPanel extends JPanel implements KeyListener, ActionListener
             }
         } );
 
+        stopButton.addActionListener( new ActionListener()
+        {
+            @Override public void actionPerformed( ActionEvent e )
+            {
+                GameWindow.getInstance().stopNode();
+            }
+        } );
+
     }
 
     private void setupGUI()

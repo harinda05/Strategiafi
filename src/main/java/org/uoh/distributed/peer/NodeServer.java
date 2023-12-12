@@ -2,6 +2,7 @@ package org.uoh.distributed.peer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.uoh.distributed.peer.game.GameObject;
 import org.uoh.distributed.peer.game.GlobalView;
 import org.uoh.distributed.peer.game.actionmsgs.MoveMsg;
 import org.uoh.distributed.peer.game.services.ClientToServerSingleton;
@@ -350,7 +351,18 @@ public class NodeServer
     private void syncMap( GlobalView map )
     {
         logger.debug( "Received map -> {}", map );
-//        node.setGameMap( map );
+        for( GameObject c : map.getGameObjects().values() )
+        {
+            if( node.getGameMap().getGameObjects().get( c.hashCode() ) == null ) // if the reward not there then add it Otherwise remove it from node map
+            {
+                node.getGameMap().addObject( c );
+            }
+            else
+            {
+                node.getGameMap().getGameObjects().remove( c.hashCode() );
+            }
+        }
+
 
     }
 

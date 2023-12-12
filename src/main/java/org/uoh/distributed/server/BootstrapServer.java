@@ -163,7 +163,7 @@ public class BootstrapServer
                         {
                             nodes.remove( i );
 
-                            String reply = Constants.UNREGOK;
+                            String reply = Constants.UNREGOK + Constants.MSG_SEPARATOR + "0";
                             reply = String.format( "%04d", reply.length() + 5 ) + Constants.MSG_SEPARATOR + reply;
                             byte[] compressedReply = RequestBuilder.compress( reply.getBytes() );
                             DatagramPacket dpReply = new DatagramPacket( compressedReply,compressedReply.length, incoming.getAddress(), incoming.getPort() );
