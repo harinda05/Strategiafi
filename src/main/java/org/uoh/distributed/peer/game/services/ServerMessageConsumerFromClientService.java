@@ -35,7 +35,7 @@ public class ServerMessageConsumerFromClientService implements Runnable{
 
                 if(message.getType().equals(Constants.CONSUME_RESOURCE)){
                     ConsumeResourceMsg consumeResourceMsg = (ConsumeResourceMsg) message;
-                    Paxos.getInstance().initiatePaxosVoteRequest(node.getRoutingTable(),message.getType(),node.getNodeId(), consumeResourceMsg.getResourceId());
+                    Paxos.getInstance().initiatePaxosVoteRequest(node.getRoutingTable(),message.getType(),node.getNodeId(), consumeResourceMsg.getResourceId(), node.getIpAddress());
                 } else {
                     try {
                         String msg = String.format( Constants.GAME_PAYLOAD_MSG_FORMAT, message.getType(), RequestBuilder.buildObjectRequest(message));

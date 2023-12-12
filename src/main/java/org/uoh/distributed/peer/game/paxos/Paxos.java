@@ -41,7 +41,7 @@ public class Paxos {
     }
 
     // Method to initiate Paxos voting
-    public void initiatePaxosVoteRequest(RoutingTable routingTable, String msgType, int nodeId, String resourceId) {
+    public void initiatePaxosVoteRequest(RoutingTable routingTable, String msgType, int nodeId, String resourceId, String myAddress) {
         // Logic to initiate Paxos voting with other nodes
         proposalNumberOut++;
 
@@ -49,22 +49,24 @@ public class Paxos {
         actualQuorumMaintainer.put(proposalNumberOut, 1);
 
         routingTable.getEntries().parallelStream().forEach(routingTableEntry -> {
-            PaxosProposal paxosProposal = null;
-            try(DatagramSocket datagramSocket = new DatagramSocket()){
-                switch(msgType){
-                    case Constants.CONSUME_RESOURCE:
-                        paxosProposal = new ResourceProposalPaxosObject(nodeId, resourceId, proposalNumberOut);
+            if(!routingTableEntry.getAddress().getHostName().equals(myAddress)){
+                PaxosProposal paxosProposal = null;
+                try(DatagramSocket datagramSocket = new DatagramSocket()){
+                    switch(msgType){
+                        case Constants.CONSUME_RESOURCE:
+                            paxosProposal = new ResourceProposalPaxosObject(nodeId, resourceId, proposalNumberOut);
+                    }
+
+                    if(paxosProposal == null){
+                        throw new Exception(new RuntimeException("Unsupported Paxos Vote Type"));
+                    }
+
+                    String msg = String.format(Constants.PAXOS_VOTE_REQUEST_MSG_FORMAT, Constants.VOTE_REQUEST, RequestBuilder.buildObjectRequest(paxosProposal));
+                    RequestBuilder.sendRequestAsync(datagramSocket, msg, routingTableEntry.getAddress().getAddress(), routingTableEntry.getAddress().getPort());
+
+                } catch (Exception e){
+                    logger.error("Error occurred when sending voting request -> {}", e.getMessage());
                 }
-
-                if(paxosProposal == null){
-                    throw new Exception(new RuntimeException("Unsupported Paxos Vote Type"));
-                }
-
-                String msg = String.format(Constants.PAXOS_VOTE_REQUEST_MSG_FORMAT, Constants.VOTE_REQUEST, RequestBuilder.buildObjectRequest(paxosProposal));
-                RequestBuilder.sendRequestAsync(datagramSocket, msg, routingTableEntry.getAddress().getAddress(), routingTableEntry.getAddress().getPort());
-
-            } catch (Exception e){
-                logger.error("Error occurred when sending voting request -> {}", e.getMessage());
             }
         });
     }
