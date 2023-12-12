@@ -31,6 +31,7 @@ public class GameWindow extends JFrame
     private LoggerPanel loggerPanel;
 
     JButton btnPlay = new JButton( "Play" ); // for get focus
+    JButton btnGrab = new JButton( "Collect" ); // for grab recourse
 
     public GameWindow()
     {
@@ -53,13 +54,15 @@ public class GameWindow extends JFrame
         gamePanel = new GamePanel( cellSize, gridSize );
         loggerPanel = new LoggerPanel();
         nodeList = new javax.swing.JList<>();
+        btnGrab.setToolTipText( "Click to collect/grab coins" );
 
         setTitle( NameConstant.GAME_NAME );
         setSize( 850, 800 );
 
-        this.add( connectPanel, new GridBagConstraints( 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets( 12, 0, 0, 0 ), 0, 0 ) );
+        this.add( connectPanel, new GridBagConstraints( 0, 0, 4, 1, 1.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets( 12, 0, 0, 0 ), 0, 0 ) );
         this.add( btnPlay, new GridBagConstraints( 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets( 12, 20, 0, 0 ), 0, 0 ) );
-        this.add( gamePanel, new GridBagConstraints( 0, 2, 1, 1, 1.0, 1.0, GridBagConstraints.WEST, GridBagConstraints.BOTH, new Insets( 12, 20, 0, 0 ), 0, 0 ) );
+        this.add( btnGrab, new GridBagConstraints( 1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets( 12, 20, 0, 0 ), 0, 0 ) );
+        this.add( gamePanel, new GridBagConstraints( 0, 2, 4, 1, 1.0, 1.0, GridBagConstraints.WEST, GridBagConstraints.BOTH, new Insets( 12, 20, 0, 0 ), 0, 0 ) );
         //        this.add( loggerPanel, new GridBagConstraints( 0, 3, 1, 1, 0.5, 0.2, GridBagConstraints.WEST, GridBagConstraints.BOTH, new Insets( 12, 20, 0, 0 ), 0, 0 )  );
 
 
@@ -69,6 +72,16 @@ public class GameWindow extends JFrame
             public void actionPerformed( ActionEvent e )
             {
                 gamePanel.requestFocusInWindow(); // Shift focus to game panel
+            }
+        } );
+
+        btnGrab.addActionListener( new ActionListener()
+        {
+            @Override
+            public void actionPerformed( ActionEvent e )
+            {
+                gamePanel.grabResource();
+                gamePanel.requestFocusInWindow();
             }
         } );
 
@@ -150,6 +163,14 @@ public class GameWindow extends JFrame
     public void stopNode(){
         this.node.stop();
     }
+
+    public void garbResource( int resourceHash )
+    {
+        node.grabResource( resourceHash );
+    }
+
+
+
     /**
      * GUI main
      *

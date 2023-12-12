@@ -17,4 +17,9 @@ public abstract class GameObject implements Serializable {
 
     abstract void interact(GameObject object);
     abstract void paint(Graphics g, int cellSize);
+
+    @Override public String toString()
+    {
+        return "X:" + x + " , Y:" + y;
+    }
 }
