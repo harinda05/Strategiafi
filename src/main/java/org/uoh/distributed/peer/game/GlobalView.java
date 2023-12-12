@@ -68,8 +68,9 @@ public class GlobalView implements Serializable
             final int key = p.gameObjectHash();
             if (gameObjects.containsKey(key)) {
                 GameObject object = gameObjects.get(key);
-                object.interact(p);
-                gameObjects.remove(key);
+                // TODO Now player at Object location; Need to do interact with the coin
+//                object.interact(p);
+//                gameObjects.remove(key);
             }
 
             g.drawString(p.getName() + " Score: " + p.getScore(), 5, cellSize * height + 15);

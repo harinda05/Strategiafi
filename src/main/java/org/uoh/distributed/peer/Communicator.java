@@ -58,7 +58,7 @@ public class Communicator
 
     public boolean disconnect( InetSocketAddress peer )
     {
-        return false;
+        return true; // TODO do actual discounnect from the system
     }
 
     public Object notifyNewNode( InetSocketAddress peer, InetSocketAddress me, int nodeId )
@@ -91,7 +91,7 @@ public class Communicator
         if( response != null )
         {
             Object obj = RequestBuilder.base64StringToObject( response.split( Constants.MSG_SEPARATOR )[3] );
-            logger.debug( "Received characters to be taken over -> {}", obj );
+            logger.debug( "Received New Node ack  -> {}", obj );
             if( obj != null )
             {
                 return obj;
@@ -172,7 +172,16 @@ public class Communicator
         logger.debug( "Received response : {}", response );
         if( response != null )
         {
-            Object obj = RequestBuilder.base64StringToObject( response );
+            Object obj = null;
+            try
+            {
+                obj = RequestBuilder.base64StringToObject( response );
+            }
+            catch( Exception ex )
+            {
+                logger.error( "Error occurred when encoding map-> {}", peer, ex );
+                ex.printStackTrace();
+            }
             logger.debug( "Received entry table of ({}) -> {}", peer, obj );
             if( obj != null )
             {

@@ -141,7 +141,7 @@ public class RequestBuilder
         {
             return new Object();
         }
-        byte[] received = Base64.getDecoder().decode( base64 );
+        byte[] received = Base64.getMimeDecoder().decode( base64 );
         ByteArrayInputStream bais = new ByteArrayInputStream( received );
         try (ObjectInputStream in = new ObjectInputStream( bais ))
         {
