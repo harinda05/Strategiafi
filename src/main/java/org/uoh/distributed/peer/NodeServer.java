@@ -6,6 +6,9 @@ import org.uoh.distributed.peer.game.GameObject;
 import org.uoh.distributed.peer.game.GlobalView;
 import org.uoh.distributed.peer.game.actionmsgs.GrabResourceMsg;
 import org.uoh.distributed.peer.game.actionmsgs.MoveMsg;
+import org.uoh.distributed.peer.game.paxos.LocalPaxosVoteLocalObject;
+import org.uoh.distributed.peer.game.paxos.Paxos;
+import org.uoh.distributed.peer.game.paxos.PaxosProposal;
 import org.uoh.distributed.peer.game.services.ClientToServerSingleton;
 import org.uoh.distributed.peer.game.services.ServerMessageConsumerFromClientService;
 import org.uoh.distributed.peer.game.utils.MulticastHandler;
@@ -34,6 +37,7 @@ public class NodeServer
     private final String multicastAddress = "230.0.0.0"; // ToDo: get from props
     private final int multicastPort = 5383; // ToDo: get from props
 
+    private final Paxos paxos = Paxos.getInstance();
 
     public NodeServer( int port )
     {
@@ -83,7 +87,7 @@ public class NodeServer
             }
         } );
 
-        ServerMessageConsumerFromClientService clientToServerServiceThread = new ServerMessageConsumerFromClientService(clientToServerService, multicastHandler); // Create a ClientToServerServiceThread instance
+        ServerMessageConsumerFromClientService clientToServerServiceThread = new ServerMessageConsumerFromClientService(clientToServerService, multicastHandler, node); // Create a ClientToServerServiceThread instance
 
         executorService.submit( () -> {
             try
@@ -197,6 +201,11 @@ public class NodeServer
             case Constants.TYPE_PAYLOAD:
                 handlePayload(incomingResult[2], recipient);
                 break;
+            case Constants.VOTE_REQUEST:
+                handlePaxosVoteRequest(incomingResult[2], recipient);
+
+            case Constants.VOTE_RESPONSE:
+                handlePaxosVoteResponse(incomingResult[2], recipient);
 
             default:
                 break;
@@ -405,6 +414,34 @@ public class NodeServer
         GrabResourceMsg resourceMsg = (GrabResourceMsg) RequestBuilder.base64StringToObject( parts[0] );
 
         node.getGameMap().reflectAction( resourceMsg );
+    }
+
+    private void handlePaxosVoteRequest(String request, InetSocketAddress recipient){
+        logger.debug( "Received vote request -> {}", request );
+        String[] parts = request.split( Constants.MSG_SEPARATOR );
+
+        Object obj = RequestBuilder.base64StringToObject( parts[0]);
+        logger.debug( "Received characters to be taken over -> {}", obj );
+
+        if(obj instanceof PaxosProposal){
+            paxos.handleIncomingPaxosVoteRequest((PaxosProposal) obj, recipient);
+        } else {
+            logger.error("Object is not type of PaxosProposal");
+        }
+    }
+
+    private void handlePaxosVoteResponse(String request, InetSocketAddress recipient){
+        String[] parts = request.split( Constants.MSG_SEPARATOR );
+
+        Object obj = RequestBuilder.base64StringToObject( parts[0] );
+        logger.debug( "Received characters to be taken over -> {}", obj );
+
+        if(obj instanceof LocalPaxosVoteLocalObject){
+            logger.info( "Received vote response -> propNumber - {}, status - {}", ((LocalPaxosVoteLocalObject) obj).getPaxosProposal().getProposalNumber(), ((LocalPaxosVoteLocalObject) obj).getStatus() );
+            paxos.receivePaxosVote((LocalPaxosVoteLocalObject) obj);
+        } else {
+            logger.error("Object is not type of PaxosProposal");
+        }
     }
 
 }

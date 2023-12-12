@@ -1,16 +1,19 @@
 package org.uoh.distributed.utils;
 
-public class Constants
-{
+public class Constants {
 
 
-  /** Need to set the bootstrap IP and Port here */
+  /**
+   * Need to set the bootstrap IP and Port here
+   */
   public static int BOOTSTRAP_PORT = 55555;
   public static String BOOTSTRAP_IP = "127.0.0.1";
 
-  /** Message format to be used when sending a request to the bootstrap server. ${length} ${msg} */
+  /**
+   * Message format to be used when sending a request to the bootstrap server. ${length} ${msg}
+   */
   public static final String MSG_SEPARATOR = "~";
-  public static final String MSG_FORMAT = "%04d?%s".replace( "?",MSG_SEPARATOR );
+  public static final String MSG_FORMAT = "%04d?%s".replace("?", MSG_SEPARATOR);
   public static final String REG = "REG";
   public static final String UNREG = "UNREG";
   public static final String REGOK = "REGOK";
@@ -18,18 +21,24 @@ public class Constants
   public static final String ECHO = "ECHO";
   public static final String ECHOOK = "ECHOOK";
 
-  /** Types of syncs */
+  /**
+   * Types of syncs
+   */
   public static final String TYPE_ROUTING = "RTBL";
   public static final String TYPE_MAP = "GMAP";
   public static final String TYPE_ENTRIES = "ETBL";
 
-  /** Message commands to be used in client server communications **/
+  /**
+   * Message commands to be used in client server communications
+   **/
   public static final String GET_ROUTING_TABLE = "GETRTBL";
   public static final String NEW_NODE = "NEWNODE";
   public static final String RESPONSE_OK = "OK";
   public static final String RESPONSE_FAILURE = "FAILED";
 
-  /** SYNC - sync the entry table entries by handing over anything that should belong to that node */
+  /**
+   * SYNC - sync the entry table entries by handing over anything that should belong to that node
+   */
   public static final String SYNC = "SYNC";
   public static final String PING = "PING";
 
@@ -37,20 +46,32 @@ public class Constants
 
   public static final String TYPE_PAYLOAD = "TYPE_PAYLOAD"; // indicates a msg containing a game message payload
 
-  /** REG ${ip} ${port} ${username} */
-  public static final String REG_MSG_FORMAT = (REG+"?%s?%d?%s").replace( "?", MSG_SEPARATOR );
-  /** UNREG ${ip} ${port} ${username} */
-  public static final String UNREG_MSG_FORMAT = (UNREG+"?%s?%d?%s").replace( "?", MSG_SEPARATOR );
-  /** NEWNODE ${ip} ${port} ${nodeId} */
-  public static final String NEWNODE_MSG_FORMAT = (NEW_NODE +"?%s?%d?%d").replace( "?", MSG_SEPARATOR );
-  /** PING - Pings and gets the entries of the corresponding node */
-  public static final String PING_MSG_FORMAT = (PING+"?%d?%s").replace( "?", MSG_SEPARATOR );
-  /** SYNC ${type} ${serialized_object} - For syncing table entries and routing tables */
-  public static final String SYNC_MSG_FORMAT = (SYNC+"?%s?%s").replace( "?", MSG_SEPARATOR );
+  /**
+   * REG ${ip} ${port} ${username}
+   */
+  public static final String REG_MSG_FORMAT = (REG + "?%s?%d?%s").replace("?", MSG_SEPARATOR);
+  /**
+   * UNREG ${ip} ${port} ${username}
+   */
+  public static final String UNREG_MSG_FORMAT = (UNREG + "?%s?%d?%s").replace("?", MSG_SEPARATOR);
+  /**
+   * NEWNODE ${ip} ${port} ${nodeId}
+   */
+  public static final String NEWNODE_MSG_FORMAT = (NEW_NODE + "?%s?%d?%d").replace("?", MSG_SEPARATOR);
+  /**
+   * PING - Pings and gets the entries of the corresponding node
+   */
+  public static final String PING_MSG_FORMAT = (PING + "?%d?%s").replace("?", MSG_SEPARATOR);
+  /**
+   * SYNC ${type} ${serialized_object} - For syncing table entries and routing tables
+   */
+  public static final String SYNC_MSG_FORMAT = (SYNC + "?%s?%s").replace("?", MSG_SEPARATOR);
 
-  public static final String GAME_PAYLOAD_MSG_FORMAT = (GAME_ACTION+"?%s?%s").replace( "?", MSG_SEPARATOR );
+  public static final String GAME_PAYLOAD_MSG_FORMAT = (GAME_ACTION + "?%s?%s").replace("?", MSG_SEPARATOR);
 
-  /** Status Codes **/
+  /**
+   * Status Codes
+   **/
   public static final int E0000 = 0;    // No nodes in the network
   public static final int E0001 = 1;    // 1 node in the network
   public static final int E0002 = 2;    // 2 nodes in the network
@@ -61,10 +82,9 @@ public class Constants
   public static final int E9996 = 9996; // Network Full
 
 
-
-
-
-  /** How many times a given UDP request be retried */
+  /**
+   * How many times a given UDP request be retried
+   */
   public static final int BOOTSTRAP_RETRIES_COUNT = 5;
   public static final int RETRIES_COUNT = 5;
   public static final int RETRY_TIMEOUT_MS = 5000;
@@ -75,18 +95,31 @@ public class Constants
 
   public static final int ADDRESS_SPACE_SIZE = 180;
 
-  /** Default Game configurations **/
+  /**
+   * Default Game configurations
+   **/
   public static final int MAP_HEIGHT = 10;
   public static final int MAP_WIDTH = 10;
-  public static final int MAP_CELL_PIXEL= 40;
+  public static final int MAP_CELL_PIXEL = 40;
 
-  public static final int REWARDS_PERCENTAGE= 8;
-  public static final String COIN_VALUE_RANGE= "1~5";
+  public static final int REWARDS_PERCENTAGE = 8;
+  public static final String COIN_VALUE_RANGE = "1~5";
 
 
-  /** Game Action Types **/
+  /**
+   * Game Action Types
+   **/
   public static final String MOVE = "MOVE";
   public static final String GRAB = "GRAB";
+
+  public static final String CONSUME_RESOURCE = "CONSUME_RESOURCES";
+  public static final String VOTE_REQUEST = "VOTE_REQUEST";
+
+  public static final String VOTE_RESPONSE = "VOTE_RESPONSE";
+  public static final String PAXOS_VOTE_REQUEST_MSG_FORMAT = (VOTE_REQUEST + "?%s?%s").replace("?", MSG_SEPARATOR);
+  public static final String PAXOS_VOTE_RESPONSE_MSG_FORMAT = (VOTE_RESPONSE + "?%s?%s").replace("?", MSG_SEPARATOR);
+
+  public static final String CONSUME_RESOURCE_PROPOSAL = "CONSUME_RESOURCE_PROPOSAL";
 
 
 }
