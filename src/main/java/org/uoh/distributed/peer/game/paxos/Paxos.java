@@ -59,7 +59,7 @@ public class Paxos {
                     throw new Exception(new RuntimeException("Unsupported Paxos Vote Type"));
                 }
 
-                String msg = String.format(Constants.PAXOS_VOTE_REQUEST_MSG_FORMAT, msgType, RequestBuilder.buildObjectRequest(paxosProposal));
+                String msg = String.format(Constants.PAXOS_VOTE_REQUEST_MSG_FORMAT, Constants.VOTE_REQUEST, RequestBuilder.buildObjectRequest(paxosProposal));
                 RequestBuilder.sendRequestAsync(datagramSocket, msg, routingTableEntry.getAddress().getAddress(), routingTableEntry.getAddress().getPort());
 
             } catch (Exception e){
