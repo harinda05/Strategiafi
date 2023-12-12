@@ -2,6 +2,7 @@ package org.uoh.distributed.peer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.uoh.distributed.peer.game.actionmsgs.ConsumeResourceMsg;
 import org.uoh.distributed.peer.game.actionmsgs.GrabResourceMsg;
 import org.uoh.distributed.peer.game.actionmsgs.PingMsg;
 import org.uoh.distributed.peer.game.services.ClientToServerSingleton;
@@ -232,7 +233,10 @@ public class Communicator
     {
         clientToServerService.produce( new GrabResourceMsg( x, y , user) );
     }
-
+    public void informInitialGrab( String resourceId )
+    {
+        clientToServerService.produce( new ConsumeResourceMsg( resourceId, node.getUsername()) );
+    }
 
     public void pingMulticast( String user )
     {

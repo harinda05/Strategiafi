@@ -50,6 +50,16 @@ public class RequestBuilder
         return new String( data, 0, data.length );
     }
 
+    public static void sendRequestAsync( DatagramSocket datagramSocket, String request, InetAddress address, int port ) throws IOException
+    {
+
+        // Create a datagram packet to send to the Boostrap server
+        byte[] compressedReq = RequestBuilder.compress( request.getBytes() );
+        DatagramPacket datagramPacket = new DatagramPacket( compressedReq, compressedReq.length, address, port );
+        // Send to bootstrap server
+        datagramSocket.send( datagramPacket );
+    }
+
     public static List<InetSocketAddress> processRegisterResponse( String response )
     {
         System.out.println( "Processing response : " + response );

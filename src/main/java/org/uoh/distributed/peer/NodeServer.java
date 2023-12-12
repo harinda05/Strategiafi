@@ -2,11 +2,14 @@ package org.uoh.distributed.peer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.uoh.distributed.peer.game.Coin;
 import org.uoh.distributed.peer.game.GameObject;
 import org.uoh.distributed.peer.game.GlobalView;
+import org.uoh.distributed.peer.game.Player;
 import org.uoh.distributed.peer.game.actionmsgs.GrabResourceMsg;
 import org.uoh.distributed.peer.game.actionmsgs.MoveMsg;
 import org.uoh.distributed.peer.game.actionmsgs.PingMsg;
+import org.uoh.distributed.peer.game.paxos.*;
 import org.uoh.distributed.peer.game.services.ClientToServerSingleton;
 import org.uoh.distributed.peer.game.services.ServerMessageConsumerFromClientService;
 import org.uoh.distributed.peer.game.utils.MulticastHandler;
@@ -22,6 +25,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import static org.uoh.distributed.utils.Constants.CONSUME_RESOURCE_PROPOSAL;
+
 public class NodeServer
 {
 
@@ -36,6 +41,7 @@ public class NodeServer
     private final String multicastAddress = "230.0.0.0"; // ToDo: get from props
     private final int multicastPort = 5383; // ToDo: get from props
 
+    private final Paxos paxos = Paxos.getInstance();
 
     public NodeServer( int port )
     {
@@ -85,7 +91,7 @@ public class NodeServer
             }
         } );
 
-        ServerMessageConsumerFromClientService clientToServerServiceThread = new ServerMessageConsumerFromClientService(clientToServerService, multicastHandler); // Create a ClientToServerServiceThread instance
+        ServerMessageConsumerFromClientService clientToServerServiceThread = new ServerMessageConsumerFromClientService(clientToServerService, multicastHandler, node); // Create a ClientToServerServiceThread instance
 
         executorService.submit( () -> {
             try
@@ -199,6 +205,11 @@ public class NodeServer
             case Constants.TYPE_PAYLOAD:
                 handlePayload(incomingResult[2], recipient);
                 break;
+            case Constants.VOTE_REQUEST:
+                handlePaxosVoteRequest(incomingResult[2], recipient);
+
+            case Constants.VOTE_RESPONSE:
+                handlePaxosVoteResponse(incomingResult[2], recipient);
 
             default:
                 break;
@@ -436,6 +447,59 @@ public class NodeServer
         GrabResourceMsg resourceMsg = (GrabResourceMsg) RequestBuilder.base64StringToObject( parts[0] );
 
         node.getGameMap().reflectAction( resourceMsg );
+    }
+
+    private void handlePaxosVoteRequest(String request, InetSocketAddress recipient){
+        logger.debug( "Received vote request -> {}", request );
+        String[] parts = request.split( Constants.MSG_SEPARATOR );
+
+        Object obj = RequestBuilder.base64StringToObject( parts[0]);
+        logger.debug( "Received characters to be taken over -> {}", obj );
+
+        if(obj instanceof PaxosProposal){
+            paxos.handleIncomingPaxosVoteRequest((PaxosProposal) obj, recipient, node.getRoutingTable(), node.getNodeId());
+        } else {
+            logger.error("Object is not type of PaxosProposal");
+        }
+    }
+
+    private void handlePaxosVoteResponse(String request, InetSocketAddress recipient){
+        String[] parts = request.split( Constants.MSG_SEPARATOR );
+
+        Object obj = RequestBuilder.base64StringToObject( parts[0] );
+        logger.debug( "Received characters to be taken over -> {}", obj );
+
+        if(obj instanceof LocalPaxosVoteLocalObject){
+            logger.info( "Received vote response -> propNumber - {}, status - {}", ((LocalPaxosVoteLocalObject) obj).getPaxosProposal().getProposalNumber(), ((LocalPaxosVoteLocalObject) obj).getStatus() );
+            PaxosProposal paxosProposal = paxos.receivePaxosVote((LocalPaxosVoteLocalObject) obj);
+
+
+            if(paxosProposal.getPaxosProposalFinalStatus() == PaxosProposalFinalStatus.QUORUM_RECEIVED){
+
+                switch (paxosProposal.getProposalType()){
+                    case CONSUME_RESOURCE_PROPOSAL:
+                        ResourceProposalPaxosObject resourceProposalPaxosObject = (ResourceProposalPaxosObject) paxosProposal;
+
+                        Optional<Player> player = node.getGameMap().getPlayers().stream().filter( p -> p.getName().equals(node.getUsername())).findFirst();
+
+                        int x = node.getGameMap().getGameObjects().get(Integer.valueOf(resourceProposalPaxosObject.getResourceId())).getX();
+                        int y = node.getGameMap().getGameObjects().get(Integer.valueOf(resourceProposalPaxosObject.getResourceId())).getY();
+
+                        Coin temp = new Coin( x, y );
+                        GameObject gameObject = node.getGameMap().getGameObjects().get( temp.hashCode() );
+                        if(player.isPresent()){
+                            if(gameObject instanceof Coin){
+                                player.get().incrementScore(((Coin) gameObject).getValue());
+                            }
+                        }
+
+                        node.getGameMap().getGameObjects().remove(Integer.valueOf(resourceProposalPaxosObject.getResourceId()));
+                        node.getCommunicationProvider().informResourceGrab(x, y, node.getUsername());
+                }
+            }
+        } else {
+            logger.error("Object is not type of PaxosProposal");
+        }
     }
 
 }

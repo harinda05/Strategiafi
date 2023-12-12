@@ -453,11 +453,14 @@ public class Node
         {
             logger.info( "Resource is available {} ", obj.toString() );
             Optional<Player> p = gameMap.getPlayers().stream().filter( player -> player.getName().equals( username ) ).findFirst();
-            p.ifPresent( player -> player.incrementScore( ( (Coin) obj ).getValue() ) );
+            communicationProvider.informInitialGrab( String.valueOf(resourceHash));
 
-            // if success remove the resource from the map and announce it to others
-            gameMap.getGameObjects().remove( resourceHash );
-            communicationProvider.informResourceGrab( obj.getX(), obj.getY(), username );
+
+            //            p.ifPresent( player -> player.incrementScore( ( (Coin) obj ).getValue() ) );
+//
+//            // if success remove the resource from the map and announce it to others
+//            gameMap.getGameObjects().remove( resourceHash );
+//            communicationProvider.informResourceGrab(obj.getX(), obj.getY());
         }
 
 
