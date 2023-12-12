@@ -2,6 +2,7 @@ package org.uoh.distributed.peer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.uoh.distributed.peer.game.Coin;
 import org.uoh.distributed.peer.game.GameObject;
 import org.uoh.distributed.peer.game.GlobalView;
 import org.uoh.distributed.peer.game.Player;
@@ -484,7 +485,14 @@ public class NodeServer
                         int x = node.getGameMap().getGameObjects().get(Integer.valueOf(resourceProposalPaxosObject.getResourceId())).getX();
                         int y = node.getGameMap().getGameObjects().get(Integer.valueOf(resourceProposalPaxosObject.getResourceId())).getY();
 
-                        player.ifPresent(Player::incrementScore);
+                        Coin temp = new Coin( x, y );
+                        GameObject gameObject = node.getGameMap().getGameObjects().get( temp.hashCode() );
+                        if(player.isPresent()){
+                            if(gameObject instanceof Coin){
+                                player.get().incrementScore(((Coin) gameObject).getValue());
+                            }
+                        }
+
                         node.getGameMap().getGameObjects().remove(Integer.valueOf(resourceProposalPaxosObject.getResourceId()));
                         node.getCommunicationProvider().informResourceGrab(x, y, node.getUsername());
                 }
