@@ -8,7 +8,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.net.InetAddress;
+import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.Random;
 import java.util.UUID;
@@ -56,7 +59,28 @@ public class ConnectPanel extends JPanel implements KeyListener, ActionListener
         labelNodeIPValue.setPreferredSize( new Dimension( 100, 25 ) );
         try
         {
-            labelNodeIPValue.setText( String.valueOf( InetAddress.getLocalHost().getHostAddress() ) );
+            if( !Constants.ENABLE_LOCAL_HOST )  // Change this if you want local host
+            {
+                String systemipaddress = "";
+                try
+                {
+                    URL url_name = new URL( "https://ipv4.icanhazip.com/" );
+
+                    BufferedReader sc = new BufferedReader( new InputStreamReader( url_name.openStream() ) );
+
+                    // reads system IPAddress
+                    systemipaddress = sc.readLine().trim();
+                }
+                catch( Exception e )
+                {
+                    systemipaddress = "Cannot Execute Properly";
+                }
+                labelNodeIPValue.setText( systemipaddress );
+            }
+            else
+            {
+                labelNodeIPValue.setText( String.valueOf( InetAddress.getLocalHost().getHostAddress() ) );
+            }
         }
         catch( UnknownHostException e )
         {
