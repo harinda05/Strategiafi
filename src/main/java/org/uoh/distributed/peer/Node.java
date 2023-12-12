@@ -5,7 +5,9 @@ import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.uoh.distributed.peer.game.Coin;
+import org.uoh.distributed.peer.game.GameObject;
 import org.uoh.distributed.peer.game.GlobalView;
+import org.uoh.distributed.peer.game.Player;
 import org.uoh.distributed.utils.Constants;
 
 import java.io.IOException;
@@ -394,6 +396,10 @@ public class Node
     }
 
 
+    /**
+     * Find a Leader or some other peer to sync with the current map
+     * @return
+     */
     private RoutingTableEntry responsiblePeers(){
 
         // Assume there are n multiple leaders at once
@@ -410,7 +416,27 @@ public class Node
         return null;
     }
 
+    public void grabResource( int resourceHash )
+    {
+        /* This may be a blocking call for the current user
+            Can perform a voting and make sure resource is available for acquire
+         */
+        GameObject obj = gameMap.getGameObjects().get( resourceHash );
+        if( obj != null )
+        {
+            logger.info( "Resource is available {} ", obj.toString() );
+            Optional<Player> p = gameMap.getPlayers().stream().filter( player -> player.getName().equals( username ) ).findFirst();
+            p.ifPresent( player -> player.incrementScore( ( (Coin) obj ).getValue() ) );
 
+            // if success remove the resource from the map and announce it to others
+            gameMap.getGameObjects().remove( resourceHash );
+            communicationProvider.informResourceGrab(obj.getX(), obj.getY());
+        }
+
+
+
+
+    }
     public NodeState getState()
     {
         return state.getState();

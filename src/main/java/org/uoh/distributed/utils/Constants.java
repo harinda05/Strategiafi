@@ -86,6 +86,7 @@ public class Constants
 
   /** Game Action Types **/
   public static final String MOVE = "MOVE";
+  public static final String GRAB = "GRAB";
 
 
 }

@@ -46,4 +46,9 @@ public class Coin extends Reward implements Serializable
 
         return Color.getHSBColor( hue / 360.0f, 1.0f, 1.0f );
     }
+
+    @Override public String toString()
+    {
+        return super.toString() + " , Value:" + value;
+    }
 }

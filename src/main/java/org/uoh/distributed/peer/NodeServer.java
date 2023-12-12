@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.uoh.distributed.peer.game.GameObject;
 import org.uoh.distributed.peer.game.GlobalView;
+import org.uoh.distributed.peer.game.actionmsgs.GrabResourceMsg;
 import org.uoh.distributed.peer.game.actionmsgs.MoveMsg;
 import org.uoh.distributed.peer.game.services.ClientToServerSingleton;
 import org.uoh.distributed.peer.game.services.ServerMessageConsumerFromClientService;
@@ -189,6 +190,9 @@ public class NodeServer
                 break;
             case Constants.MOVE:
                 handleMoveRequest( incomingResult[2], recipient );
+                break;
+            case Constants.GRAB:
+                handleResourceGrab( incomingResult[2], recipient );
                 break;
             case Constants.TYPE_PAYLOAD:
                 handlePayload(incomingResult[2], recipient);
@@ -391,6 +395,16 @@ public class NodeServer
         MoveMsg moveMsg = (MoveMsg) RequestBuilder.base64StringToObject( parts[0] );
 
         node.getGameMap().reflectAction( moveMsg );
+    }
+
+    private void handleResourceGrab( String request, InetSocketAddress recipient )
+    {
+        String[] parts = request.split( Constants.MSG_SEPARATOR );
+        String ipAddress = recipient.getAddress().getHostAddress();
+
+        GrabResourceMsg resourceMsg = (GrabResourceMsg) RequestBuilder.base64StringToObject( parts[0] );
+
+        node.getGameMap().reflectAction( resourceMsg );
     }
 
 }

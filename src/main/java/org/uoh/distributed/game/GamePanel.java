@@ -1,5 +1,7 @@
 package org.uoh.distributed.game;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.uoh.distributed.peer.game.Coin;
@@ -8,6 +10,7 @@ import org.uoh.distributed.peer.game.Player;
 import org.uoh.distributed.peer.game.actionmsgs.MoveMsg;
 import org.uoh.distributed.peer.game.services.ClientToServerSingleton;
 import org.uoh.distributed.peer.game.services.ServerMessageConsumerFromClientService;
+import org.uoh.distributed.utils.Constants;
 
 import javax.swing.*;
 import java.awt.*;
@@ -26,8 +29,8 @@ public class GamePanel extends JPanel implements KeyListener, ActionListener {
     private static final Logger logger = LoggerFactory.getLogger( GamePanel.class );
 
         private Player localPlayer;
-        private GlobalView map;
-        private String playerName;
+        @Getter @Setter private GlobalView map;
+        @Setter @Getter private String playerName;
 
         /** Implements the refresh rate) */
         private Timer timer;
@@ -40,8 +43,8 @@ public class GamePanel extends JPanel implements KeyListener, ActionListener {
             setFocusable(true);
             requestFocus();
             addKeyListener(this);
-            Coin coin = new Coin(5, 5);
-            map.addObject(coin);
+//            Coin coin = new Coin(5, 5);
+//            map.addObject(coin);
             timer = new Timer(50, this);
             timer.start();
         }
@@ -50,6 +53,10 @@ public class GamePanel extends JPanel implements KeyListener, ActionListener {
         public void paint(Graphics g) {
             super.paint(g);
             map.drawMap(g);
+            if( localPlayer != null )
+            {
+                g.drawString( localPlayer.getName() + " Score: " + localPlayer.getScore(), 5, Constants.MAP_CELL_PIXEL * Constants.MAP_HEIGHT + 15 );
+            }
         }
 
         @Override
@@ -58,8 +65,16 @@ public class GamePanel extends JPanel implements KeyListener, ActionListener {
         }
 
         @Override
-        public void keyPressed(KeyEvent e) {
-            localPlayer.move(e.getKeyCode());
+        public void keyPressed( KeyEvent e )
+        {
+            if( e.getKeyChar() == 'w' || e.getKeyChar() == 'W' || e.getKeyCode() == KeyEvent.VK_SPACE )
+            {
+                grabResource();
+            }
+            else
+            {
+                localPlayer.move( e.getKeyCode() );
+            }
             logger.info("current location: {} , {}", localPlayer.getX(), localPlayer.getY());
             clientToServerService.produce( new MoveMsg( localPlayer.getX(), localPlayer.getY(), playerName ) );
         }
@@ -75,28 +90,18 @@ public class GamePanel extends JPanel implements KeyListener, ActionListener {
             }
         }
 
-    public GlobalView getMap()
-    {
-        return this.map;
-    }
-
-    public void setMap( GlobalView map )
-    {
-        this.map = map;
-    }
-
-    public String getPlayerName()
-    {
-        return playerName;
-    }
-
-    public void setPlayerName( String playerName )
-    {
-        this.playerName = playerName;
-    }
-
     public void addLocalPlayer( String playerName, int x, int y){
             localPlayer = new Player( playerName,x,y );
             map.getPlayers().add( localPlayer);
+    }
+
+    public boolean grabResource()
+    {
+        if( map.getGameObjects().get( localPlayer.gameObjectHash() ) != null )
+        {
+            // both local player and resource in same cell
+            GameWindow.getInstance().garbResource( localPlayer.gameObjectHash() );
+        }
+        return false;
     }
 }
