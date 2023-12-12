@@ -486,7 +486,7 @@ public class NodeServer
 
                         player.ifPresent(Player::incrementScore);
                         node.getGameMap().getGameObjects().remove(Integer.valueOf(resourceProposalPaxosObject.getResourceId()));
-                        node.getCommunicationProvider().informResourceGrab(x, y);
+                        node.getCommunicationProvider().informResourceGrab(x, y, node.getUsername());
                 }
             }
         } else {
