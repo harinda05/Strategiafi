@@ -50,7 +50,8 @@ public class Paxos {
         actualQuorumMaintainer.put(proposalNumberOut, 1);
 
         routingTable.getEntries().parallelStream().forEach(routingTableEntry -> {
-            if(!routingTableEntry.getAddress().getHostName().equals(myAddress)){
+            if(routingTableEntry.getNodeId()!= nodeId){
+
                 PaxosProposal paxosProposal = null;
                 try(DatagramSocket datagramSocket = new DatagramSocket()){
                     switch(msgType){
