@@ -74,10 +74,14 @@ public class GamePanel extends JPanel implements KeyListener, ActionListener {
             }
             else
             {
-                localPlayer.move( e.getKeyCode() );
+                boolean moved = localPlayer.move( e.getKeyCode() );
+                if( moved )  // fine move message for only success moves
+                {
+                    logger.info( "current location: {} , {}", localPlayer.getX(), localPlayer.getY() );
+                    clientToServerService.produce( new MoveMsg( localPlayer.getX(), localPlayer.getY(), playerName ) );
+                }
             }
-            logger.info("current location: {} , {}", localPlayer.getX(), localPlayer.getY());
-            clientToServerService.produce( new MoveMsg( localPlayer.getX(), localPlayer.getY(), playerName ) );
+
         }
 
         @Override
