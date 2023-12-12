@@ -3,8 +3,7 @@ package org.uoh.distributed.peer.game;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.uoh.distributed.peer.game.actionmsgs.ConsumeResourceMsg;
-import org.uoh.distributed.peer.game.services.ClientToServerSingleton;
+import org.uoh.distributed.peer.game.actionmsgs.GrabResourceMsg;
 import org.uoh.distributed.peer.game.actionmsgs.MoveMsg;
 import org.uoh.distributed.utils.Constants;
 
@@ -40,9 +39,6 @@ public class GlobalView implements Serializable
     @Setter
     private long logicClock;
 
-    ClientToServerSingleton clientToServerService = ClientToServerSingleton.getInstance(); // Gets the instance from singleton class
-
-
     public GlobalView(int width, int height, int cellSize)
     {
         this.width = width;
@@ -73,15 +69,13 @@ public class GlobalView implements Serializable
             final int key = p.gameObjectHash();
             if (gameObjects.containsKey(key)) {
                 GameObject object = gameObjects.get(key);
-
-                // Initiate a Paxos voting for the resources.
-                clientToServerService.produce(new ConsumeResourceMsg(String.valueOf(key)));
-                object.interact(p);
-                gameObjects.remove(key);
+                // TODO Now player at Object location; Need to do interact with the coin
+//                object.interact(p);
+//                gameObjects.remove(key);
             }
 
-            g.drawString(p.getName() + " Score: " + p.getScore(), 5, cellSize * height + 15);
         }
+//        g.drawString(p.getName() + " Score: " + p.getScore(), 5, cellSize * height + 15);
 
         for (GameObject o : gameObjects.values()) {
             o.paint(g, cellSize);
@@ -103,6 +97,9 @@ public class GlobalView implements Serializable
             case Constants.MOVE:
                 movePlayer( (MoveMsg) action );
                 break;
+            case Constants.GRAB:
+                resourceUpdate( (GrabResourceMsg) action );
+                break;
             default:
                 break;
 
@@ -121,6 +118,15 @@ public class GlobalView implements Serializable
         {
             players.add( new Player( move.getActor(), Integer.parseInt( move.getxIndex() ), Integer.parseInt( move.getyIndex() ) ) );
         }
+    }
 
+    private void resourceUpdate( GrabResourceMsg resource )
+    {
+        Coin temp = new Coin( Integer.parseInt( resource.getXIndex() ), Integer.parseInt( resource.getYIndex() ) );
+        GameObject gameObject = gameObjects.get( temp.hashCode() );
+        if( gameObject != null )
+        {
+            gameObjects.remove( gameObject.hashCode() );
+        }
     }
 }

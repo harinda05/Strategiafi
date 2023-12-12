@@ -84,6 +84,10 @@ public class Constants
   /** Default Game configurations **/
   public static final int MAP_HEIGHT = 10;
   public static final int MAP_WIDTH = 10;
+  public static final int MAP_CELL_PIXEL= 40;
+
+  public static final int REWARDS_PERCENTAGE= 8;
+  public static final String COIN_VALUE_RANGE= "1~5";
 
 
   /** Game Action Types **/
@@ -93,6 +97,7 @@ public class Constants
 
   /** PAXOS PROPOSAL TYPES **/
   public static final String CONSUME_RESOURCE_PROPOSAL = "CONSUME_RESOURCE_PROPOSAL";
+  public static final String GRAB = "GRAB";
 
 
 }

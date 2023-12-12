@@ -2,6 +2,8 @@ package org.uoh.distributed.peer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.uoh.distributed.peer.game.actionmsgs.GrabResourceMsg;
+import org.uoh.distributed.peer.game.services.ClientToServerSingleton;
 import org.uoh.distributed.utils.Constants;
 import org.uoh.distributed.utils.RequestBuilder;
 
@@ -23,6 +25,8 @@ public class Communicator
 
     private boolean started = false;
     private ExecutorService executorService;
+    ClientToServerSingleton clientToServerService ;
+
     private Node node;
 
 
@@ -30,6 +34,8 @@ public class Communicator
     {
         this.node = node;
         executorService = Executors.newCachedThreadPool();
+        clientToServerService = ClientToServerSingleton.getInstance(); // Gets the instance from singleton class
+
         started = true;
         logger.info( "Communication between peers started" );
 
@@ -58,7 +64,7 @@ public class Communicator
 
     public boolean disconnect( InetSocketAddress peer )
     {
-        return false;
+        return true; // TODO do actual discounnect from the system
     }
 
     public Object notifyNewNode( InetSocketAddress peer, InetSocketAddress me, int nodeId )
@@ -91,7 +97,7 @@ public class Communicator
         if( response != null )
         {
             Object obj = RequestBuilder.base64StringToObject( response.split( Constants.MSG_SEPARATOR )[3] );
-            logger.debug( "Received characters to be taken over -> {}", obj );
+            logger.debug( "Received New Node ack  -> {}", obj );
             if( obj != null )
             {
                 return obj;
@@ -172,7 +178,16 @@ public class Communicator
         logger.debug( "Received response : {}", response );
         if( response != null )
         {
-            Object obj = RequestBuilder.base64StringToObject( response );
+            Object obj = null;
+            try
+            {
+                obj = RequestBuilder.base64StringToObject( response );
+            }
+            catch( Exception ex )
+            {
+                logger.error( "Error occurred when encoding map-> {}", peer, ex );
+                ex.printStackTrace();
+            }
             logger.debug( "Received entry table of ({}) -> {}", peer, obj );
             if( obj != null )
             {
@@ -210,6 +225,11 @@ public class Communicator
             }
         }
         return null;
+    }
+
+    public void informResourceGrab( int x, int y )
+    {
+        clientToServerService.produce( new GrabResourceMsg( x, y ) );
     }
 
 }

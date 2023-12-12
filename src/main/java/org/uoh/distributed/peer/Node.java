@@ -1,18 +1,18 @@
 package org.uoh.distributed.peer;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.uoh.distributed.peer.game.Coin;
+import org.uoh.distributed.peer.game.GameObject;
 import org.uoh.distributed.peer.game.GlobalView;
+import org.uoh.distributed.peer.game.Player;
 import org.uoh.distributed.utils.Constants;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -25,18 +25,18 @@ public class Node
 
     private final StateManager state = new StateManager( NodeState.IDLE );
 
-    private final String username;
-    private final String ipAddress;
-    private final int port;
+    @Getter private final String username;
+    @Getter private final String ipAddress;
+    @Getter private final int port;
     private final String bootstrapIpAddress;
     private final int bootstrapPort;
-    private int nodeId;
-    private final RoutingTable routingTable = new RoutingTable();
+    @Setter @Getter private int nodeId;
+    @Getter private final RoutingTable routingTable = new RoutingTable();
     private boolean isLeader;
     private String leaderNode;
 
     private final NodeServer server;
-    private final Communicator communicationProvider;   //  Peer communication provider
+    @Getter private final Communicator communicationProvider;   //  Peer communication provider
 
     private ScheduledExecutorService executorService;
     private ScheduledFuture<?> periodicTask;
@@ -44,7 +44,7 @@ public class Node
     private BootstrapConnector bootstrapProvider = new BootstrapConnector();
 
     //----- Game related stuff -----
-    private GlobalView gameMap;
+    @Setter @Getter private GlobalView gameMap;
 
 
     public Node( int port )
@@ -97,7 +97,7 @@ public class Node
             {
                 Set<RoutingTableEntry> entries = connect( peers );
                 // peer size become 0 only when we connected successfully
-                if( peers.size() == 0 || entries.size() > 0 )
+                if( peers.isEmpty() || !entries.isEmpty() )
                 {
                     this.updateRoutingTable( entries );
                     state.setState( NodeState.CONNECTING );
@@ -188,12 +188,15 @@ public class Node
             1) Load global map
             2) If need to join to chord then join
          */
-        Optional<RoutingTableEntry> entry =this.routingTable.getEntries().stream().findFirst();
-        if( entry.isPresent() && routingTable.getEntries().size()>1 && false)
-        {
-           Object map =  communicationProvider.sync( entry.get().getAddress(),Constants.TYPE_MAP );
 
-           gameMap = (GlobalView) map;
+        RoutingTableEntry entry = responsiblePeers();
+        if( entry != null )
+        {
+            Object map = communicationProvider.sync( entry.getAddress(), Constants.TYPE_MAP );
+            if( map != null )
+            {
+                gameMap.getGameObjects().putAll( ( (GlobalView) map ).getGameObjects() );
+            }
         }
 
     }
@@ -272,9 +275,27 @@ public class Node
      */
     private void initializeGlobalMap()
     {
+        if( this.gameMap == null )
+        {
+            this.gameMap = new GlobalView( Constants.MAP_WIDTH, Constants.MAP_HEIGHT, Constants.MAP_CELL_PIXEL );
+        }
+
         try
         {
-            logger.debug( "Initialized the global map -> {}", gameMap );
+            int rewardsCount = ( Constants.MAP_WIDTH * Constants.MAP_HEIGHT ) * Constants.REWARDS_PERCENTAGE / 100;
+            String[] valRange = Constants.COIN_VALUE_RANGE.split( "~" );
+            gameMap.getGameObjects().clear();
+            int i = 0;
+            while( i < rewardsCount )
+            {
+                Coin c = generateRandomCoin( Constants.MAP_WIDTH, Constants.MAP_HEIGHT, Integer.parseInt( valRange[0] ), Integer.parseInt( valRange[1] ) );
+                if( !gameMap.getGameObjects().containsKey( c.hashCode() ) )  // add unique coins
+                {
+                    gameMap.addObject( c );
+                    i++;
+                }
+            }
+            logger.debug( "Initialized the global map -> {}", gameMap.getGameObjects().size() );
         }
         catch( Exception e )
         {
@@ -282,6 +303,24 @@ public class Node
         }
     }
 
+    /**
+     * Generate random coins based on the grid parameters
+     * @param limitX coin x max limit
+     * @param limitY coin y max limit
+     * @param minVal coin min value
+     * @param maxVal coin max value
+     * @return
+     */
+    private Coin generateRandomCoin( int limitX, int limitY, int minVal, int maxVal )
+    {
+        Random random = new Random();
+        int x = random.nextInt( limitX );
+        int y = random.nextInt( limitY );
+        int val = random.nextInt( maxVal ) + minVal;
+
+        Coin c = new Coin( x, y, val );
+        return c;
+    }
 
     /**
      * Updates the {@link #routingTable} with entries coming from another node's routing table
@@ -356,46 +395,51 @@ public class Node
         logger.info( "Distributed node stopped" );
     }
 
-    public int getPort()
-    {
-        return port;
+
+    /**
+     * Find a Leader or some other peer to sync with the current map
+     * @return
+     */
+    private RoutingTableEntry responsiblePeers(){
+
+        // Assume there are n multiple leaders at once
+        Optional<RoutingTableEntry> leader =  routingTable.getEntries().stream().filter(RoutingTableEntry::isLeader).findFirst();
+
+        if(leader.isPresent()){
+            return leader.get();
+        }else {
+            Optional<RoutingTableEntry> peer = routingTable.getEntries().stream().filter(e -> e.getNodeId() != nodeId).findFirst();
+            if(peer.isPresent()){
+                return peer.get();
+            }
+        }
+        return null;
     }
 
-    public String getUsername()
+    public void grabResource( int resourceHash )
     {
-        return username;
+        /* This may be a blocking call for the current user
+            Can perform a voting and make sure resource is available for acquire
+         */
+        GameObject obj = gameMap.getGameObjects().get( resourceHash );
+        if( obj != null )
+        {
+            logger.info( "Resource is available {} ", obj.toString() );
+            Optional<Player> p = gameMap.getPlayers().stream().filter( player -> player.getName().equals( username ) ).findFirst();
+            p.ifPresent( player -> player.incrementScore( ( (Coin) obj ).getValue() ) );
+
+            // if success remove the resource from the map and announce it to others
+            gameMap.getGameObjects().remove( resourceHash );
+            communicationProvider.informResourceGrab(obj.getX(), obj.getY());
+        }
+
+
+
+
     }
-
-
-    public String getIpAddress()
-    {
-        return ipAddress;
-    }
-
-    public RoutingTable getRoutingTable()
-    {
-        return routingTable;
-    }
-
-
     public NodeState getState()
     {
         return state.getState();
-    }
-
-    public Communicator getCommunicationProvider()
-    {
-        return communicationProvider;
-    }
-
-    public int getNodeId()
-    {
-        return nodeId;
-    }
-
-    public void setNodeId( int nodeId )
-    {
-        this.nodeId = nodeId;
     }
 
     public boolean isLeader()
@@ -408,13 +452,4 @@ public class Node
         isLeader = leader;
     }
 
-    public GlobalView getGameMap()
-    {
-        return gameMap;
-    }
-
-    public void setGameMap( GlobalView gameMap )
-    {
-        this.gameMap = gameMap;
-    }
 }
