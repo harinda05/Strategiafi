@@ -6,6 +6,7 @@ import org.uoh.distributed.peer.game.GameObject;
 import org.uoh.distributed.peer.game.GlobalView;
 import org.uoh.distributed.peer.game.actionmsgs.GrabResourceMsg;
 import org.uoh.distributed.peer.game.actionmsgs.MoveMsg;
+import org.uoh.distributed.peer.game.actionmsgs.PingMsg;
 import org.uoh.distributed.peer.game.services.ClientToServerSingleton;
 import org.uoh.distributed.peer.game.services.ServerMessageConsumerFromClientService;
 import org.uoh.distributed.peer.game.utils.MulticastHandler;
@@ -14,6 +15,7 @@ import org.uoh.distributed.utils.RequestBuilder;
 
 import java.io.IOException;
 import java.net.*;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -372,10 +374,39 @@ public class NodeServer
 
     private void respondToPing( String request, InetSocketAddress recipient ) throws IOException
     {
-        logger.debug( "Responding to ping with my table entries to -> {}", request );
-        /*
-              Need to implement what we need to share
-         */
+        logger.debug( "Responding to ping -> {}", request );
+        String[] parts = request.split( Constants.MSG_SEPARATOR );
+
+        if( parts.length == 1 )
+        {
+            Object obj = RequestBuilder.base64StringToObject( parts[0] );
+            if( obj instanceof PingMsg )
+            {
+                PingMsg pingMsg = (PingMsg) obj;
+                String pingStr = String.format( Constants.PING_MSG_FORMAT, node.getUsername(), RequestBuilder.buildObjectRequest( Constants.RESPONSE_OK ) );
+                String ping = RequestBuilder.buildRequest( pingStr );
+                Optional<RoutingTableEntry> recipientPeer = node.getRoutingTable().findByNodeId( Integer.parseInt( pingMsg.getActor() ) );
+                if( recipientPeer.isPresent() )
+                {
+                    retryOrTimeout( ping, recipientPeer.get().getAddress() );
+                }
+                else
+                {
+                    logger.debug( "Requester not found -> {}", pingMsg.getActor() );
+                }
+            }
+        }
+        else
+        {
+            logger.debug( " Received ping  -> {}", request );
+
+            String user = parts[0];
+            Optional<RoutingTableEntry> recipientPeer = node.getRoutingTable().findByNodeId( Integer.parseInt( user ) );
+            recipientPeer.ifPresent( routingTableEntry -> routingTableEntry.setLastUpdated( LocalDateTime.now() ) );
+
+        }
+
+
     }
 
     private void handlePayload(String request, InetSocketAddress recipient ){
