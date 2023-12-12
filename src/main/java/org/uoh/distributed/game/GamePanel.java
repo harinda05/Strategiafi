@@ -55,6 +55,7 @@ public class GamePanel extends JPanel implements KeyListener, ActionListener {
             map.drawMap(g);
             if( localPlayer != null )
             {
+                g.setColor( Color.BLACK );
                 g.drawString( localPlayer.getName() + " Score: " + localPlayer.getScore(), 5, Constants.MAP_CELL_PIXEL * Constants.MAP_HEIGHT + 15 );
             }
         }
