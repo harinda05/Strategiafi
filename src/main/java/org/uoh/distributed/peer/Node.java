@@ -426,7 +426,7 @@ public class Node
         {
             logger.info( "Resource is available {} ", obj.toString() );
             Optional<Player> p = gameMap.getPlayers().stream().filter( player -> player.getName().equals( username ) ).findFirst();
-            communicationProvider.informInitialGrab( String.valueOf(((Coin)obj).hashCode()));
+            communicationProvider.informInitialGrab( String.valueOf(resourceHash));
 
 
             //            p.ifPresent( player -> player.incrementScore( ( (Coin) obj ).getValue() ) );
