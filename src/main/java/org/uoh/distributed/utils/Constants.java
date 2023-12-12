@@ -44,7 +44,7 @@ public class Constants
   /** NEWNODE ${ip} ${port} ${nodeId} */
   public static final String NEWNODE_MSG_FORMAT = (NEW_NODE +"?%s?%d?%d").replace( "?", MSG_SEPARATOR );
   /** PING - Pings and gets the entries of the corresponding node */
-  public static final String PING_MSG_FORMAT = (PING+"?%d?%s").replace( "?", MSG_SEPARATOR );
+  public static final String PING_MSG_FORMAT = (PING+"?%s?%s").replace( "?", MSG_SEPARATOR );
   /** SYNC ${type} ${serialized_object} - For syncing table entries and routing tables */
   public static final String SYNC_MSG_FORMAT = (SYNC+"?%s?%s").replace( "?", MSG_SEPARATOR );
 
@@ -71,6 +71,7 @@ public class Constants
   public static final int GRACE_PERIOD_MS = 5000;
   public static final int HEARTBEAT_FREQUENCY_MS = 20000;
   public static final int HEARTBEAT_INITIAL_DELAY = 30000;
+  public static final int HEARTBEAT_LIVENESS_LIMIT = 180000;
 
 
   public static final int ADDRESS_SPACE_SIZE = 180;
