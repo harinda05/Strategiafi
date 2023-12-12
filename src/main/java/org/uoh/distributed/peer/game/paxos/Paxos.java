@@ -19,6 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import static org.uoh.distributed.utils.Constants.CONSUME_RESOURCE_PROPOSAL;
+import static org.uoh.distributed.utils.Constants.VOTE_RESPONSE;
 
 public class Paxos {
     private static final Logger logger = LoggerFactory.getLogger( Paxos.class );
@@ -81,7 +82,7 @@ public class Paxos {
                     logger.info("Votinggggggggggggggggggggggg");
                     voteRequestsReceived.get(resourceProposalPaxosObject.getResourceId()).setStatus(PaxosVoteStatus.ACCEPTED);
                     try(DatagramSocket datagramSocket = new DatagramSocket()){
-                        String request = String.format(Constants.PAXOS_VOTE_RESPONSE_MSG_FORMAT, CONSUME_RESOURCE_PROPOSAL, RequestBuilder.buildObjectRequest(voteRequestsReceived.get(resourceProposalPaxosObject.getResourceId())));
+                        String request = String.format(Constants.PAXOS_VOTE_RESPONSE_MSG_FORMAT, VOTE_RESPONSE, RequestBuilder.buildObjectRequest(voteRequestsReceived.get(resourceProposalPaxosObject.getResourceId())));
                         RequestBuilder.sendRequest(datagramSocket, request, recipient.getAddress(), recipient.getPort());
                     } catch (Exception e){
                         logger.error("Exception occurred when sending vote to Paxos Initializer -> {}", e.getMessage());
