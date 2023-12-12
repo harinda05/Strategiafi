@@ -26,8 +26,8 @@ public class Paxos {
     private int proposalNumberOut = 0;
 
     // The Paxos instance needs to know about all nodes in the distributed system.
-    private Map<String, Integer> proposalRequiredQuorumMaintainer = new ConcurrentHashMap<>();
-    private Map<String, Integer> actualQuorumMaintainer = new ConcurrentHashMap<>();
+    private Map<Integer, Integer> proposalRequiredQuorumMaintainer = new ConcurrentHashMap<>();
+    private Map<Integer, Integer> actualQuorumMaintainer = new ConcurrentHashMap<>();
 
     private Map<String, LocalPaxosVoteLocalObject> voteRequestsReceived = new ConcurrentHashMap<>();
     private static Paxos instance;
@@ -43,6 +43,10 @@ public class Paxos {
     public void initiatePaxosVoteRequest(RoutingTable routingTable, String msgType, int nodeId, String resourceId) {
         // Logic to initiate Paxos voting with other nodes
         proposalNumberOut++;
+
+        proposalRequiredQuorumMaintainer.put(proposalNumberOut, routingTable.getEntries().size()/2 + 1);
+        actualQuorumMaintainer.put(proposalNumberOut, 1);
+
         routingTable.getEntries().parallelStream().forEach(routingTableEntry -> {
             PaxosProposal paxosProposal = null;
             try(DatagramSocket datagramSocket = new DatagramSocket()){
@@ -67,7 +71,7 @@ public class Paxos {
     // Method to handle receiving Paxos vote request
     public void handleIncomingPaxosVoteRequest(PaxosProposal paxosProposal, InetSocketAddress recipient) {
         // Logic to handle receiving Paxos vote request
-
+        logger.info("Vote request received");
         switch (paxosProposal.getProposalType()){
             case CONSUME_RESOURCE_PROPOSAL:
                 ResourceProposalPaxosObject resourceProposalPaxosObject = (ResourceProposalPaxosObject) paxosProposal;
@@ -91,16 +95,20 @@ public class Paxos {
 
     // Method to handle receiving Paxos vote
     public void receivePaxosVote(LocalPaxosVoteLocalObject localPaxosVoteLocalObject) {
-
+        logger.info("Received paxos vote: proposal {}", localPaxosVoteLocalObject.getPaxosProposal().getProposalNumber());
         // Logic to handle receiving Paxos vote
-        int minimumVoteCount = proposalRequiredQuorumMaintainer.get(String.valueOf(localPaxosVoteLocalObject.getPaxosProposal().getProposalNumber()));
+        int minimumVoteCount = proposalRequiredQuorumMaintainer.get(localPaxosVoteLocalObject.getPaxosProposal().getProposalNumber());
         if (localPaxosVoteLocalObject.getStatus() == PaxosVoteStatus.ACCEPTED){
-            Integer currentVoteCount = actualQuorumMaintainer.get(String.valueOf(localPaxosVoteLocalObject.getPaxosProposal().getProposalNumber()));
+            Integer currentVoteCount = actualQuorumMaintainer.get(localPaxosVoteLocalObject.getPaxosProposal().getProposalNumber());
             if (currentVoteCount + 1 >= minimumVoteCount){
+
+                logger.info("Quorum Received");
+
                 //ToDo: Vote Succeeded ----> Do the task for UI
                 //ToDo: Commit the message to teh network. // can multicast here
             } else {
-                actualQuorumMaintainer.put(String.valueOf(localPaxosVoteLocalObject.getPaxosProposal().getProposalNumber()), currentVoteCount + 1);
+                logger.info("Incrementing actualQuoromMaintainer");
+                actualQuorumMaintainer.put(localPaxosVoteLocalObject.getPaxosProposal().getProposalNumber(), currentVoteCount + 1);
             }
         }
     }
