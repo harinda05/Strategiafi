@@ -3,8 +3,6 @@ package org.uoh.distributed.peer.game;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.uoh.distributed.peer.game.actionmsgs.ConsumeResourceMsg;
-import org.uoh.distributed.peer.game.services.ClientToServerSingleton;
 import org.uoh.distributed.peer.game.actionmsgs.GrabResourceMsg;
 import org.uoh.distributed.peer.game.actionmsgs.MoveMsg;
 import org.uoh.distributed.utils.Constants;
@@ -40,9 +38,6 @@ public class GlobalView implements Serializable
     @Getter
     @Setter
     private long logicClock;
-
-    ClientToServerSingleton clientToServerService = ClientToServerSingleton.getInstance(); // Gets the instance from singleton class
-
 
     public GlobalView(int width, int height, int cellSize)
     {

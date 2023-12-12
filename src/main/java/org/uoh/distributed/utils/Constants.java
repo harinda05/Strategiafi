@@ -93,11 +93,11 @@ public class Constants
   /** Game Action Types **/
   public static final String MOVE = "MOVE";
   public static final String CONSUME_RESOURCE = "CONSUME_RESOURCE";
-  public static final String GRAB = "GRAB";
 
 
   /** PAXOS PROPOSAL TYPES **/
   public static final String CONSUME_RESOURCE_PROPOSAL = "CONSUME_RESOURCE_PROPOSAL";
+  public static final String GRAB = "GRAB";
 
 
 }
