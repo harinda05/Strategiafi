@@ -424,7 +424,7 @@ public class NodeServer
         logger.debug( "Received characters to be taken over -> {}", obj );
 
         if(obj instanceof PaxosProposal){
-            paxos.handleIncomingPaxosVoteRequest((PaxosProposal) obj, recipient);
+            paxos.handleIncomingPaxosVoteRequest((PaxosProposal) obj, recipient, node.getRoutingTable(), node.getNodeId());
         } else {
             logger.error("Object is not type of PaxosProposal");
         }
