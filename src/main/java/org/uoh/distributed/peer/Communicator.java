@@ -230,7 +230,7 @@ public class Communicator
 
     public void informResourceGrab( int x, int y )
     {
-        clientToServerService.produce( new GrabResourceMsg( x, y ) );
+        clientToServerService.produce( new GrabResourceMsg( x, y , node.getUsername()));
     }
     public void informInitialGrab( String resourceId )
     {

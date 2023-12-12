@@ -449,10 +449,13 @@ public class NodeServer
                         ResourceProposalPaxosObject resourceProposalPaxosObject = (ResourceProposalPaxosObject) paxosProposal;
 
                         Optional<Player> player = node.getGameMap().getPlayers().stream().filter( p -> p.getName().equals(node.getUsername())).findFirst();
+
+                        int x = node.getGameMap().getGameObjects().get(Integer.valueOf(resourceProposalPaxosObject.getResourceId())).getX();
+                        int y = node.getGameMap().getGameObjects().get(Integer.valueOf(resourceProposalPaxosObject.getResourceId())).getY();
+
                         player.ifPresent(Player::incrementScore);
                         node.getGameMap().getGameObjects().remove(Integer.valueOf(resourceProposalPaxosObject.getResourceId()));
-                        node.getCommunicationProvider().informResourceGrab(node.getGameMap().getGameObjects().get(Integer.valueOf(resourceProposalPaxosObject.getResourceId())).getX(),
-                                node.getGameMap().getGameObjects().get(Integer.valueOf(resourceProposalPaxosObject.getResourceId())).getY());
+                        node.getCommunicationProvider().informResourceGrab(x, y);
                 }
             }
         } else {

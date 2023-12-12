@@ -9,9 +9,11 @@ public class GrabResourceMsg extends Action
 
     @Getter private String xIndex;
     @Getter private String yIndex;
+    @Getter private String playerId;
 
-    public GrabResourceMsg( int x, int y )
+    public GrabResourceMsg( int x, int y , String playerId)
     {
+        this.playerId = playerId;
         this.xIndex = String.valueOf( x );
         this.yIndex = String.valueOf( y );
         this.setType( Constants.GRAB );
