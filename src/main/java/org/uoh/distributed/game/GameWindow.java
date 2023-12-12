@@ -28,6 +28,7 @@ public class GameWindow extends JFrame
 
     private ConnectPanel connectPanel = new ConnectPanel();
     private GamePanel gamePanel;
+    private NodeSummaryPanel nodeSummaryPanel;
     private LoggerPanel loggerPanel;
 
     JButton btnPlay = new JButton( "Play" ); // for get focus
@@ -52,17 +53,20 @@ public class GameWindow extends JFrame
     {
         this.setLayout( new GridBagLayout() );
         gamePanel = new GamePanel( cellSize, gridSize );
+        nodeSummaryPanel = new NodeSummaryPanel();
         loggerPanel = new LoggerPanel();
         nodeList = new javax.swing.JList<>();
         btnGrab.setToolTipText( "Click to collect/grab coins" );
 
         setTitle( NameConstant.GAME_NAME );
-        setSize( 850, 800 );
+        setSize( 900, 700 );
 
-        this.add( connectPanel, new GridBagConstraints( 0, 0, 4, 1, 1.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets( 12, 0, 0, 0 ), 0, 0 ) );
-        this.add( btnPlay, new GridBagConstraints( 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets( 12, 20, 0, 0 ), 0, 0 ) );
-        this.add( btnGrab, new GridBagConstraints( 1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets( 12, 20, 0, 0 ), 0, 0 ) );
-        this.add( gamePanel, new GridBagConstraints( 0, 2, 4, 1, 1.0, 1.0, GridBagConstraints.WEST, GridBagConstraints.BOTH, new Insets( 12, 20, 0, 0 ), 0, 0 ) );
+        this.add( connectPanel, new GridBagConstraints( 0, 0, 8, 1, 1.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets( 12, 0, 0, 0 ), 0, 0 ) );
+        this.add( btnPlay, new GridBagConstraints( 0, 1, 2, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets( 12, 20, 0, 0 ), 0, 0 ) );
+        this.add( btnGrab, new GridBagConstraints( 3, 1, 2, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets( 12, 20, 0, 0 ), 0, 0 ) );
+
+        this.add( gamePanel, new GridBagConstraints( 0, 2, 7, 1, 1.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.BOTH, new Insets( 14, 20, 0, 0 ), 0, 0 ) );
+        this.add( nodeSummaryPanel, new GridBagConstraints( 7, 2, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets( 0, 0, 0, 0 ), 0, 0 ) );
         //        this.add( loggerPanel, new GridBagConstraints( 0, 3, 1, 1, 0.5, 0.2, GridBagConstraints.WEST, GridBagConstraints.BOTH, new Insets( 12, 20, 0, 0 ), 0, 0 )  );
 
 
@@ -116,7 +120,7 @@ public class GameWindow extends JFrame
             node.start();
             gamePanel.setPlayerName( userName );
             gamePanel.addLocalPlayer( userName, 0, 0 );
-
+            nodeSummaryPanel.setRoutingTable( node.getRoutingTable() );
             connectPanel.updateDetails( userName, nodePort );
             System.out.println( "Node started ..." );
             Runtime.getRuntime().addShutdownHook( new Thread( node::stop ) );

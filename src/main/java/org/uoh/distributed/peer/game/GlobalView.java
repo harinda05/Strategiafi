@@ -122,11 +122,10 @@ public class GlobalView implements Serializable
 
     private void resourceUpdate( GrabResourceMsg resource )
     {
+        Optional<Player> player = players.stream().filter( p -> p.getName().equals(resource.getActor())).findFirst();
+        player.ifPresent(Player::incrementScore);
 
-          Optional<Player> player = players.stream().filter( p -> p.getName().equals(resource.getPlayerId())).findFirst();
-          player.ifPresent(Player::incrementScore);
-
-        Coin temp = new Coin( Integer.parseInt( resource.getXIndex() ), Integer.parseInt( resource.getYIndex() ) );
+        Coin temp = new Coin( resource.getXIndex(), resource.getYIndex() );
         GameObject gameObject = gameObjects.get( temp.hashCode() );
         if( gameObject != null )
         {

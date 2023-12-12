@@ -13,6 +13,9 @@ public class Player extends GameObject {
     @Getter @Setter
     private int score;
 
+    @Getter @Setter
+    private boolean isBlocked;
+
     public Player(String name, int x, int y) {
         super(x, y);
         this.name = name;
@@ -30,7 +33,9 @@ public class Player extends GameObject {
         g.fillOval(this.getX() * cellSize, this.getY() * cellSize, cellSize, cellSize);
     }
 
-    public void move(int keyCode) {
+    public boolean move(int keyCode) {
+
+        boolean moved = true;
         switch (keyCode) {
             case KeyEvent.VK_UP:
                 this.setY(this.getY() - 1);
@@ -47,7 +52,11 @@ public class Player extends GameObject {
             case KeyEvent.VK_RIGHT:
                 this.setX(this.getX() + 1);
                 break;
+
+            default:
+                moved = false;
         }
+        return moved;
     }
 
     public void incrementScore() {

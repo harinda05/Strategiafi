@@ -1,8 +1,12 @@
 package org.uoh.distributed.peer;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import javax.xml.bind.annotation.XmlRootElement;
 import java.io.Serializable;
 import java.net.InetSocketAddress;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
@@ -12,8 +16,9 @@ import java.util.Objects;
 public class RoutingTableEntry implements Serializable
 {
 
-    private InetSocketAddress address;
-    private int nodeId;
+    @Setter @Getter private InetSocketAddress address;
+    @Getter @Setter private int nodeId;
+    @Getter @Setter private LocalDateTime lastUpdated;
     private boolean isLeader;
 
     public RoutingTableEntry() { }
@@ -25,22 +30,7 @@ public class RoutingTableEntry implements Serializable
 
         this.address = address;
         this.nodeId = nodeId;
-    }
-
-    public InetSocketAddress getAddress() {
-        return address;
-    }
-
-    public int getNodeId() {
-        return nodeId;
-    }
-
-    public void setNodeId(int nodeId) {
-        this.nodeId = nodeId;
-    }
-
-    public void setAddress( InetSocketAddress address) {
-        this.address = address;
+        this.lastUpdated = LocalDateTime.now();
     }
 
     @Override public boolean equals( Object o )

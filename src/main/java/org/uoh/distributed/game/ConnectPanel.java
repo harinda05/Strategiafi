@@ -126,10 +126,10 @@ public class ConnectPanel extends JPanel implements KeyListener, ActionListener
 
         this.add( labelBoostrapIP, new GridBagConstraints( 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets( 12, 20, 0, 0 ), 0, 0 ) );
         this.add( txtFieldBoostrapIP, new GridBagConstraints( 1, 2, 4, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets( 12, 5, 0, 0 ), 0, 0 ) );
-        this.add( labelBoostrapPort, new GridBagConstraints( 4, 2, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets( 12, 20, 0, 0 ), 0, 0 ) );
+        this.add( labelBoostrapPort, new GridBagConstraints( 4, 2, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets( 12, 0, 0, 0 ), 0, 0 ) );
         this.add( txtFieldBoostrapPort, new GridBagConstraints( 5, 2, 4, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets( 12, 5, 0, 0 ), 0, 0 ) );
         this.add( labelPort, new GridBagConstraints( 0, 4, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets( 12, 20, 0, 0 ), 0, 0 ) );
-        this.add( txtFieldPort, new GridBagConstraints( 1, 4, 4, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets( 12, 5, 0, 0 ), 0, 0 ) );
+        this.add( txtFieldPort, new GridBagConstraints( 1, 4, 4, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets( 12, 5, 5, 0 ), 0, 0 ) );
 
         this.add( searchButton, new GridBagConstraints( 0, 6, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets( 12, 20, 0, 0 ), 0, 0 ) );
         this.add( stopButton, new GridBagConstraints( 2, 6, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets( 12, 0, 0, 0 ), 0, 0 ) );

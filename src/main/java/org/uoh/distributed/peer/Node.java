@@ -12,6 +12,8 @@ import org.uoh.distributed.utils.Constants;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -207,7 +209,32 @@ public class Node
            1) ping to other Nodes
            2) Synchronize Map
          */
+        validateRoutingTableEntries();
+        communicationProvider.pingMulticast( username );
 
+    }
+
+    /**
+     * Validate routing table entries updated and if any entry exceed the maximum time period then remove it
+     */
+    private void validateRoutingTableEntries()
+    {
+        Iterator<RoutingTableEntry> iterator = routingTable.getEntries().iterator();
+
+        // Iterate over the set and remove entries that meet certain conditions
+        while( iterator.hasNext() )
+        {
+            RoutingTableEntry element = iterator.next();
+            Instant instant = LocalDateTime.now().atZone( java.time.ZoneId.systemDefault() ).toInstant();
+            Instant instant2 = element.getLastUpdated().atZone( java.time.ZoneId.systemDefault() ).toInstant();
+
+            if( ( instant.toEpochMilli() - instant2.toEpochMilli() ) > Constants.HEARTBEAT_LIVENESS_LIMIT )
+            {
+
+                logger.info( "Node ({}:{}) Removed ", element.getAddress().getAddress(), element.getAddress().getPort() );
+                iterator.remove();
+            }
+        }
     }
 
 

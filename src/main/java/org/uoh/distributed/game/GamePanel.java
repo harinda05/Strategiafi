@@ -27,6 +27,7 @@ public class GamePanel extends JPanel implements KeyListener, ActionListener {
 
     ClientToServerSingleton clientToServerService = ClientToServerSingleton.getInstance(); // Gets the instance from singleton class
     private static final Logger logger = LoggerFactory.getLogger( GamePanel.class );
+    protected GridBagLayout gridBagLayout1 = new GridBagLayout();
 
         private Player localPlayer;
         @Getter @Setter private GlobalView map;
@@ -36,15 +37,14 @@ public class GamePanel extends JPanel implements KeyListener, ActionListener {
         private Timer timer;
 
         public GamePanel(int cellSize, int gridSize) {
-//            localPlayer = new Player(playerName, 0, 0);
+
+            this.setLayout( gridBagLayout1 );
             map = new GlobalView(gridSize, gridSize, cellSize);
-//            map.addObject(localPlayer);
 
             setFocusable(true);
             requestFocus();
             addKeyListener(this);
-//            Coin coin = new Coin(5, 5);
-//            map.addObject(coin);
+
             timer = new Timer(50, this);
             timer.start();
         }
@@ -74,10 +74,14 @@ public class GamePanel extends JPanel implements KeyListener, ActionListener {
             }
             else
             {
-                localPlayer.move( e.getKeyCode() );
+                boolean moved = localPlayer.move( e.getKeyCode() );
+                if( moved )  // fine move message for only success moves
+                {
+                    logger.info( "current location: {} , {}", localPlayer.getX(), localPlayer.getY() );
+                    clientToServerService.produce( new MoveMsg( localPlayer.getX(), localPlayer.getY(), playerName ) );
+                }
             }
-            logger.info("current location: {} , {}", localPlayer.getX(), localPlayer.getY());
-            clientToServerService.produce( new MoveMsg( localPlayer.getX(), localPlayer.getY(), playerName ) );
+
         }
 
         @Override
