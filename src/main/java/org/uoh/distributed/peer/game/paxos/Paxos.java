@@ -3,6 +3,7 @@ package org.uoh.distributed.peer.game.paxos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.uoh.distributed.peer.RoutingTable;
+import org.uoh.distributed.peer.RoutingTableEntry;
 import org.uoh.distributed.peer.game.GameObject;
 import org.uoh.distributed.peer.game.Player;
 import org.uoh.distributed.peer.game.services.ServerMessageConsumerFromClientService;
@@ -72,12 +73,22 @@ public class Paxos {
     }
 
     // Method to handle receiving Paxos vote request
-    public void handleIncomingPaxosVoteRequest(PaxosProposal paxosProposal, InetSocketAddress recipient) {
+    public void handleIncomingPaxosVoteRequest(PaxosProposal paxosProposal, InetSocketAddress recipient, RoutingTable routingTable, int nodeId) {
         // Logic to handle receiving Paxos vote request
+        Optional<RoutingTableEntry> recipientRoutingTableEntry;
+
         logger.info("Vote request received");
         switch (paxosProposal.getProposalType()){
             case CONSUME_RESOURCE_PROPOSAL:
                 ResourceProposalPaxosObject resourceProposalPaxosObject = (ResourceProposalPaxosObject) paxosProposal;
+
+                recipientRoutingTableEntry = routingTable.findByNodeId(resourceProposalPaxosObject.getNodeId());
+
+                if(recipientRoutingTableEntry.isEmpty()){
+                    logger.error("Routing table entry not found");
+                    return;
+                }
+
                 if(voteRequestsReceived.get(resourceProposalPaxosObject.getResourceId()) == null){
                     voteRequestsReceived.put(resourceProposalPaxosObject.getResourceId(), new LocalPaxosVoteLocalObject(resourceProposalPaxosObject, PaxosVoteStatus.PENDING));
 
@@ -85,7 +96,7 @@ public class Paxos {
                     voteRequestsReceived.get(resourceProposalPaxosObject.getResourceId()).setStatus(PaxosVoteStatus.ACCEPTED);
                     try(DatagramSocket datagramSocket = new DatagramSocket()){
                         String request = String.format(Constants.PAXOS_VOTE_RESPONSE_MSG_FORMAT, VOTE_RESPONSE, RequestBuilder.buildObjectRequest(voteRequestsReceived.get(resourceProposalPaxosObject.getResourceId())));
-                        RequestBuilder.sendRequest(datagramSocket, request, recipient.getAddress(), recipient.getPort());
+                        RequestBuilder.sendRequest(datagramSocket, request, recipientRoutingTableEntry.get().getAddress().getAddress(), recipientRoutingTableEntry.get().getAddress().getPort());
                     } catch (Exception e){
                         logger.error("Exception occurred when sending vote to Paxos Initializer -> {}", e.getMessage());
                     }
