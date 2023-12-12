@@ -234,6 +234,6 @@ public class Communicator
     }
     public void informInitialGrab( String resourceId )
     {
-        clientToServerService.produce( new ConsumeResourceMsg( resourceId) );
+        clientToServerService.produce( new ConsumeResourceMsg( resourceId, node.getUsername()) );
     }
 }

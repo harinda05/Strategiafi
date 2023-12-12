@@ -109,16 +109,17 @@ public class Paxos {
     }
 
     // Method to handle receiving Paxos vote
-    public void receivePaxosVote(LocalPaxosVoteLocalObject localPaxosVoteLocalObject) {
+    public PaxosProposal receivePaxosVote(LocalPaxosVoteLocalObject localPaxosVoteLocalObject) {
         logger.info("Received paxos vote: proposal {}", localPaxosVoteLocalObject.getPaxosProposal().getProposalNumber());
         // Logic to handle receiving Paxos vote
         int minimumVoteCount = proposalRequiredQuorumMaintainer.get(localPaxosVoteLocalObject.getPaxosProposal().getProposalNumber());
-        if (localPaxosVoteLocalObject.getStatus() == PaxosVoteStatus.ACCEPTED){
+
+        PaxosProposal paxosProposal = localPaxosVoteLocalObject.getPaxosProposal();
+        if (paxosProposal != null && localPaxosVoteLocalObject.getStatus() == PaxosVoteStatus.ACCEPTED){
             Integer currentVoteCount = actualQuorumMaintainer.get(localPaxosVoteLocalObject.getPaxosProposal().getProposalNumber());
             if (currentVoteCount + 1 >= minimumVoteCount){
-
                 logger.info("Quorum Received");
-
+                paxosProposal.setPaxosProposalFinalStatus(PaxosProposalFinalStatus.QUORUM_RECEIVED);
                 //ToDo: Vote Succeeded ----> Do the task for UI
                 //ToDo: Commit the message to teh network. // can multicast here
             } else {
@@ -126,6 +127,7 @@ public class Paxos {
                 actualQuorumMaintainer.put(localPaxosVoteLocalObject.getPaxosProposal().getProposalNumber(), currentVoteCount + 1);
             }
         }
+        return paxosProposal;
     }
 }
 

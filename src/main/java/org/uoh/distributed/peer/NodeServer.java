@@ -4,11 +4,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.uoh.distributed.peer.game.GameObject;
 import org.uoh.distributed.peer.game.GlobalView;
+import org.uoh.distributed.peer.game.Player;
 import org.uoh.distributed.peer.game.actionmsgs.GrabResourceMsg;
 import org.uoh.distributed.peer.game.actionmsgs.MoveMsg;
-import org.uoh.distributed.peer.game.paxos.LocalPaxosVoteLocalObject;
-import org.uoh.distributed.peer.game.paxos.Paxos;
-import org.uoh.distributed.peer.game.paxos.PaxosProposal;
+import org.uoh.distributed.peer.game.paxos.*;
 import org.uoh.distributed.peer.game.services.ClientToServerSingleton;
 import org.uoh.distributed.peer.game.services.ServerMessageConsumerFromClientService;
 import org.uoh.distributed.peer.game.utils.MulticastHandler;
@@ -22,6 +21,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+
+import static org.uoh.distributed.utils.Constants.CONSUME_RESOURCE_PROPOSAL;
 
 public class NodeServer
 {
@@ -438,7 +439,22 @@ public class NodeServer
 
         if(obj instanceof LocalPaxosVoteLocalObject){
             logger.info( "Received vote response -> propNumber - {}, status - {}", ((LocalPaxosVoteLocalObject) obj).getPaxosProposal().getProposalNumber(), ((LocalPaxosVoteLocalObject) obj).getStatus() );
-            paxos.receivePaxosVote((LocalPaxosVoteLocalObject) obj);
+            PaxosProposal paxosProposal = paxos.receivePaxosVote((LocalPaxosVoteLocalObject) obj);
+
+
+            if(paxosProposal.getPaxosProposalFinalStatus() == PaxosProposalFinalStatus.QUORUM_RECEIVED){
+
+                switch (paxosProposal.getProposalType()){
+                    case CONSUME_RESOURCE_PROPOSAL:
+                        ResourceProposalPaxosObject resourceProposalPaxosObject = (ResourceProposalPaxosObject) paxosProposal;
+
+                        Optional<Player> player = node.getGameMap().getPlayers().stream().filter( p -> p.getName().equals(node.getUsername())).findFirst();
+                        player.ifPresent(Player::incrementScore);
+                        node.getGameMap().getGameObjects().remove(Integer.valueOf(resourceProposalPaxosObject.getResourceId()));
+                        node.getCommunicationProvider().informResourceGrab(node.getGameMap().getGameObjects().get(Integer.valueOf(resourceProposalPaxosObject.getResourceId())).getX(),
+                                node.getGameMap().getGameObjects().get(Integer.valueOf(resourceProposalPaxosObject.getResourceId())).getY());
+                }
+            }
         } else {
             logger.error("Object is not type of PaxosProposal");
         }
