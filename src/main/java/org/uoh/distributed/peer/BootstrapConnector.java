@@ -21,6 +21,9 @@ public class BootstrapConnector
     private static final Logger logger = LoggerFactory.getLogger( BootstrapConnector.class );
     private final int numOfRetries = Constants.BOOTSTRAP_RETRIES_COUNT;
 
+    private String boostrapIPAddress;
+    private int boostrapPortVal;
+
     public BootstrapConnector()
     {
     }
@@ -37,9 +40,9 @@ public class BootstrapConnector
         {
             try (DatagramSocket datagramSocket = new DatagramSocket())
             {
-                String bIp = boostrapIp != null ? boostrapIp : Constants.BOOTSTRAP_IP;
-                int bPort = bootstrapPort > 0 ? bootstrapPort : Constants.BOOTSTRAP_PORT;
-                String response = RequestBuilder.sendRequest( datagramSocket, request, InetAddress.getByName( bIp ), bPort );
+                boostrapIPAddress = boostrapIp != null ? boostrapIp : Constants.BOOTSTRAP_IP;
+                boostrapPortVal = bootstrapPort > 0 ? bootstrapPort : Constants.BOOTSTRAP_PORT;
+                String response = RequestBuilder.sendRequest( datagramSocket, request, InetAddress.getByName( boostrapIPAddress ), boostrapPortVal );
                 logger.debug( "Response received : {}", response );
                 return RequestBuilder.processRegisterResponse( response );
             }
@@ -65,7 +68,7 @@ public class BootstrapConnector
         {
             try (DatagramSocket datagramSocket = new DatagramSocket())
             {
-                String response = RequestBuilder.sendRequest( datagramSocket, request, InetAddress.getByName( Constants.BOOTSTRAP_IP ), Constants.BOOTSTRAP_PORT );
+                String response = RequestBuilder.sendRequest( datagramSocket, request, InetAddress.getByName( boostrapIPAddress ), boostrapPortVal );
                 logger.debug( "Response received : {}", response );
                 if( RequestBuilder.processUnregisterResponse( response ) )
                 {
