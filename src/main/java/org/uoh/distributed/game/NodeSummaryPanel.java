@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.uoh.distributed.peer.RoutingTable;
 import org.uoh.distributed.peer.RoutingTableEntry;
+import org.uoh.distributed.peer.game.Player;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -13,6 +14,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.util.Optional;
 
 public class NodeSummaryPanel extends JPanel implements KeyListener, ActionListener
 
@@ -59,7 +61,20 @@ public class NodeSummaryPanel extends JPanel implements KeyListener, ActionListe
         {
             for( RoutingTableEntry entry : routingTable.getEntries() )
             {
-                model.addRow( new Object[]{entry.getNodeId(), entry.getAddress().getAddress(), entry.getAddress().getPort()} );
+                int sccore = 0;
+                try
+                {
+                    Optional<Player> first = GameWindow.getInstance().getNode().getGameMap().getPlayers().stream().filter( p -> p.getName().equals( String.valueOf( entry.getNodeId() ) ) ).findFirst();
+                    if( first.isPresent() )
+                    {
+                        sccore = first.get().getScore();
+                    }
+                }
+                catch( Exception ex )
+                {
+                    ex.printStackTrace();
+                }
+                model.addRow( new Object[]{entry.getNodeId(), entry.getAddress().getAddress(), entry.getAddress().getPort(), sccore} );
             }
         }
 
@@ -107,7 +122,20 @@ public class NodeSummaryPanel extends JPanel implements KeyListener, ActionListe
         {
             for( RoutingTableEntry entry : routingTable.getEntries() )
             {
-                model.addRow( new Object[]{entry.getNodeId(), entry.getAddress().getAddress(), entry.getAddress().getPort()} );
+                int sccore = 0;
+                try
+                {
+                    Optional<Player> first = GameWindow.getInstance().getNode().getGameMap().getPlayers().stream().filter( p -> p.getName().equals( String.valueOf( entry.getNodeId() ) ) ).findFirst();
+                    if( first.isPresent() )
+                    {
+                        sccore = first.get().getScore();
+                    }
+                }
+                catch( Exception ex )
+                {
+                    ex.printStackTrace();
+                }
+                model.addRow( new Object[]{entry.getNodeId(), entry.getAddress().getAddress(), entry.getAddress().getPort(), sccore} );
             }
         }
 

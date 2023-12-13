@@ -8,7 +8,7 @@ public class Constants {
    */
   public static int BOOTSTRAP_PORT = 55555;
   public static String BOOTSTRAP_IP = "127.0.0.1";
-  public static boolean ENABLE_LOCAL_HOST = false;
+  public static boolean ENABLE_LOCAL_HOST = true;
 
   /**
    * Message format to be used when sending a request to the bootstrap server. ${length} ${msg}
