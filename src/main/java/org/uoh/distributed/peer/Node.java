@@ -78,7 +78,7 @@ public class Node
     public void start()
     {
         state.checkState( NodeState.IDLE );
-        Runtime.getRuntime().addShutdownHook( new Thread( this::stop ) );
+        Runtime.getRuntime().addShutdownHook( new Thread( () -> stop( true ) ) );
 
         executorService = Executors.newScheduledThreadPool( 3 );
         server.start( this );
@@ -230,8 +230,17 @@ public class Node
 
             if( ( instant.toEpochMilli() - instant2.toEpochMilli() ) > Constants.HEARTBEAT_LIVENESS_LIMIT )
             {
-
                 logger.info( "Node ({}:{}) Removed ", element.getAddress().getAddress(), element.getAddress().getPort() );
+                Iterator<Player> playerIterator = getGameMap().getPlayers().iterator();
+                while( playerIterator.hasNext() )
+                {
+                    Player player = playerIterator.next();
+                    if( player.getName().equals( String.valueOf( element.getNodeId() ) ) )
+                    {
+                        playerIterator.remove(); // Remove the player from the list
+                        break;
+                    }
+                }
                 iterator.remove();
             }
         }
@@ -379,7 +388,7 @@ public class Node
     }
 
 
-    public void stop()
+    public void stop( boolean withUnregister )
     {
         // TODO: graceful departure
         logger.debug( "Stopping node" );
@@ -401,10 +410,13 @@ public class Node
                 this.routingTable.clear();
                 state.setState( NodeState.REGISTERED );
             }
-            unregister();
+            if( withUnregister )
+            {
+                unregister();
+            }
         }
 
-        communicationProvider.stop();
+        communicationProvider.stop( withUnregister );
         server.stop();
 
         logger.debug( "Shutting down periodic tasks" );

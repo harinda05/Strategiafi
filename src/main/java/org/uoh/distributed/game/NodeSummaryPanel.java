@@ -7,6 +7,7 @@ import org.uoh.distributed.peer.RoutingTableEntry;
 import org.uoh.distributed.peer.game.Player;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
 import java.awt.*;
@@ -93,6 +94,7 @@ public class NodeSummaryPanel extends JPanel implements KeyListener, ActionListe
         columnModel.getColumn( 1 ).setPreferredWidth( 30 );
         columnModel.getColumn( 2 ).setPreferredWidth( 25 );
         columnModel.getColumn( 3 ).setPreferredWidth( 25 );
+        table.getColumnModel().getColumn(0).setCellRenderer(new ColumnColorRenderer("Red", Color.YELLOW));
 
         // Add the table to a JScrollPane
         JScrollPane scrollPane = new JScrollPane( table );
@@ -142,6 +144,56 @@ public class NodeSummaryPanel extends JPanel implements KeyListener, ActionListe
         // Notify the table that the data has changed
         model.fireTableDataChanged();
     }
+
+    // Custom cell renderer to set cell color based on column value
+    class ColumnColorRenderer extends DefaultTableCellRenderer
+    {
+        private String targetValue;
+        private Color backgroundColor;
+
+        public ColumnColorRenderer(String targetValue, Color backgroundColor) {
+            this.targetValue = targetValue;
+            this.backgroundColor = backgroundColor;
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            Component cellComponent = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+
+            // Get the value of the cell in the 'Color' column
+            Object cellValue = table.getValueAt(row, 0); // 'Color' column index
+
+            // Determine the color based on the cell value
+            if( cellValue != null )
+            {
+                cellComponent.setBackground( getColor(  cellValue.toString() ) );
+            }
+            else
+            {
+                cellComponent.setBackground( table.getBackground() );
+            }
+
+            return cellComponent;
+        }
+        private Color getColor( String name){
+
+            // Map the number to a hue value in the range of 0.0 to 1.0
+            float hue = 0;
+            if( name == null )
+            {
+                hue = 10;
+            }
+            else
+            {
+                hue = Integer.parseInt( name ) / 1000.0f;
+            }
+
+            // Create a color with the mapped hue, maximum saturation, and brightness
+            Color color = Color.getHSBColor( hue, 1.0f, 1.0f );
+            return color;
+        }
+    }
+
 
     @Override public void keyTyped( KeyEvent keyEvent )
     {

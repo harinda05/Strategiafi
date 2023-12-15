@@ -37,6 +37,7 @@ public class ConnectPanel extends JPanel implements KeyListener, ActionListener
 
     private JButton searchButton = new JButton();
     private JButton stopButton = new JButton();
+    private JButton intteruptButton = new JButton();
     private JList<String> nodeList;
 
     public ConnectPanel()
@@ -106,6 +107,7 @@ public class ConnectPanel extends JPanel implements KeyListener, ActionListener
 
         searchButton.setText( NameConstant.START );
         stopButton.setText( NameConstant.STOP );
+        intteruptButton.setText( NameConstant.FREEZE );
 
         searchButton.addActionListener( new ActionListener()
         {
@@ -131,7 +133,15 @@ public class ConnectPanel extends JPanel implements KeyListener, ActionListener
         {
             @Override public void actionPerformed( ActionEvent e )
             {
-                GameWindow.getInstance().stopNode();
+                GameWindow.getInstance().stopNode( true );
+            }
+        } );
+
+        intteruptButton.addActionListener( new ActionListener()
+        {
+            @Override public void actionPerformed( ActionEvent e )
+            {
+                GameWindow.getInstance().stopNode( false );
             }
         } );
 
@@ -157,6 +167,7 @@ public class ConnectPanel extends JPanel implements KeyListener, ActionListener
 
         this.add( searchButton, new GridBagConstraints( 0, 6, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets( 12, 20, 0, 0 ), 0, 0 ) );
         this.add( stopButton, new GridBagConstraints( 2, 6, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets( 12, 0, 0, 0 ), 0, 0 ) );
+        this.add( intteruptButton, new GridBagConstraints( 4, 6, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets( 12, 0, 0, 0 ), 0, 0 ) );
 
 
     }

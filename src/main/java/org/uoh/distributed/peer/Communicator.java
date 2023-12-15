@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.uoh.distributed.peer.game.actionmsgs.ConsumeResourceMsg;
 import org.uoh.distributed.peer.game.actionmsgs.GrabResourceMsg;
+import org.uoh.distributed.peer.game.actionmsgs.LeaveAction;
 import org.uoh.distributed.peer.game.actionmsgs.PingMsg;
 import org.uoh.distributed.peer.game.services.ClientToServerSingleton;
 import org.uoh.distributed.utils.Constants;
@@ -109,10 +110,14 @@ public class Communicator
         return new HashMap<>();
     }
 
-    public void stop()
+    public void stop(boolean withUnreg)
     {
         if( executorService != null )
         {
+            if( withUnreg )
+            {
+                clientToServerService.produce( new LeaveAction( node.getUsername() ) );
+            }
             executorService.shutdownNow();
             try
             {

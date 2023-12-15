@@ -18,7 +18,7 @@ public class RoutingTable
 
     public Set<RoutingTableEntry> getEntries()
     {
-        return new HashSet<>( entries );
+        return this.entries;
     }
 
     public synchronized void addEntry( RoutingTableEntry entry )

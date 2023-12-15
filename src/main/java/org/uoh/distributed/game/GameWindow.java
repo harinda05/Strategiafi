@@ -96,7 +96,7 @@ public class GameWindow extends JFrame
             {
                 try
                 {
-                    stopNode();
+                    stopNode( true );
                 } catch( Exception ex ){
                     ex.printStackTrace();
                 }
@@ -123,7 +123,7 @@ public class GameWindow extends JFrame
             nodeSummaryPanel.setRoutingTable( node.getRoutingTable() );
             connectPanel.updateDetails( userName, nodePort );
             System.out.println( "Node started ..." );
-            Runtime.getRuntime().addShutdownHook( new Thread( node::stop ) );
+            Runtime.getRuntime().addShutdownHook( new Thread( () -> node.stop( true ) ) );
         }
         catch( Exception e )
         {
@@ -164,8 +164,8 @@ public class GameWindow extends JFrame
         listUpdateThread.start();
     }
 
-    public void stopNode(){
-        this.node.stop();
+    public void stopNode( boolean withUnreg ){
+        this.node.stop( withUnreg );
     }
 
     public void garbResource( int resourceHash )

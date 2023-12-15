@@ -2,7 +2,6 @@ package org.uoh.distributed;
 
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
-import org.uoh.distributed.game.GameWindow;
 import org.uoh.distributed.peer.Communicator;
 import org.uoh.distributed.peer.Node;
 import org.uoh.distributed.peer.NodeServer;
@@ -48,7 +47,7 @@ public class CLI
             node = new Node( options.getPort(), options.getIpAddress(), options.getUsername(), cp, ns, Constants.BOOTSTRAP_IP, Constants.BOOTSTRAP_PORT );
             node.start();
             System.out.println( "Node started ..." );
-            Runtime.getRuntime().addShutdownHook( new Thread( node::stop ) );
+            Runtime.getRuntime().addShutdownHook( new Thread( () -> node.stop( true ) ) );
         }
         catch( Exception e )
         {
@@ -69,7 +68,7 @@ public class CLI
                 switch( parts[0] )
                 {
                     case "stop":
-                        node.stop();
+                        node.stop( true );
                         started = false;
                         break;
                     case "node":
