@@ -32,9 +32,30 @@ public class Coin extends Reward implements Serializable
     }
 
     @Override
-    void paint(Graphics g, int cellSize) {
+    void paint( Graphics g, int cellSize )
+    {
+        String labelText = String.valueOf( this.value );
         g.setColor( getColor() );
-        g.fillRect(this.getX() * cellSize, this.getY() * cellSize, cellSize, cellSize);
+        g.fillRect( this.getX() * cellSize, this.getY() * cellSize, cellSize, cellSize );
+
+        g.setColor( Color.BLACK );
+        FontMetrics metrics = g.getFontMetrics();
+        int textWidth = metrics.stringWidth( labelText );
+        int textHeight = metrics.getHeight();
+
+        int fontSize = 11; //calculateFontSize(cellSize, textWidth);
+        Font font = new Font( "Arial", Font.PLAIN, fontSize );
+        g.setFont( font );
+
+        int centerX = ( cellSize / 2 - textWidth / 2 ) + ( this.getX() * cellSize );
+        int centerY = ( cellSize / 2 + textHeight / 2 ) + ( this.getY() * cellSize ); // Adjust for centering
+        g.drawString( labelText, centerX, centerY );
+    }
+
+    private int calculateFontSize( int diameter, int textWidth )
+    {
+        double diameterToWidthRatio = (double) diameter / textWidth;
+        return (int) ( 12 * diameterToWidthRatio ); // Change the 12 to adjust font size
     }
 
     private Color getColor()

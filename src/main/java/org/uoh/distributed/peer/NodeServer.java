@@ -7,6 +7,7 @@ import org.uoh.distributed.peer.game.GameObject;
 import org.uoh.distributed.peer.game.GlobalView;
 import org.uoh.distributed.peer.game.Player;
 import org.uoh.distributed.peer.game.actionmsgs.GrabResourceMsg;
+import org.uoh.distributed.peer.game.actionmsgs.LeaveAction;
 import org.uoh.distributed.peer.game.actionmsgs.MoveMsg;
 import org.uoh.distributed.peer.game.actionmsgs.PingMsg;
 import org.uoh.distributed.peer.game.paxos.*;
@@ -19,6 +20,7 @@ import org.uoh.distributed.utils.RequestBuilder;
 import java.io.IOException;
 import java.net.*;
 import java.time.LocalDateTime;
+import java.util.Iterator;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -192,6 +194,9 @@ public class NodeServer
 
             case Constants.PING:
                 respondToPing( incomingResult[2], recipient );
+                break;
+            case Constants.UNREG:
+                respondToUnreg( incomingResult[2], recipient );
                 break;
             case Constants.SYNC:
                 handleSyncRequest( incomingResult[2], recipient );
@@ -379,13 +384,21 @@ public class NodeServer
                 node.getGameMap().getGameObjects().remove( c.hashCode() );
             }
         }
+        for( Player c : map.getPlayers() )
+        {
+            Optional<Player> p = node.getGameMap().getPlayers().stream().filter( a -> a.getName().equals( c.getName() ) ).findFirst();
+            if( !p.isPresent() ) // if the reward not there then add it Otherwise remove it from node map
+            {
+                node.getGameMap().addObject( c );
+            }
+        }
 
 
     }
 
     private void respondToPing( String request, InetSocketAddress recipient ) throws IOException
     {
-        logger.debug( "Responding to ping -> {}", request );
+        logger.debug( "Received ping -> {}", request );
         String[] parts = request.split( Constants.MSG_SEPARATOR );
 
         if( parts.length == 1 )
@@ -394,12 +407,11 @@ public class NodeServer
             if( obj instanceof PingMsg )
             {
                 PingMsg pingMsg = (PingMsg) obj;
-                String pingStr = String.format( Constants.PING_MSG_FORMAT, node.getUsername(), RequestBuilder.buildObjectRequest( Constants.RESPONSE_OK ) );
-                String ping = RequestBuilder.buildRequest( pingStr );
                 Optional<RoutingTableEntry> recipientPeer = node.getRoutingTable().findByNodeId( Integer.parseInt( pingMsg.getActor() ) );
                 if( recipientPeer.isPresent() )
                 {
-                    retryOrTimeout( ping, recipientPeer.get().getAddress() );
+                    recipientPeer.ifPresent( routingTableEntry -> routingTableEntry.setLastUpdated( LocalDateTime.now() ) );
+                    logger.debug( " Received ping from -> {}", recipientPeer.get().getNodeId() );
                 }
                 else
                 {
@@ -407,16 +419,68 @@ public class NodeServer
                 }
             }
         }
-        else
-        {
-            logger.debug( " Received ping  -> {}", request );
 
-            String user = parts[0];
-            Optional<RoutingTableEntry> recipientPeer = node.getRoutingTable().findByNodeId( Integer.parseInt( user ) );
-            recipientPeer.ifPresent( routingTableEntry -> routingTableEntry.setLastUpdated( LocalDateTime.now() ) );
+    }
+
+    private void removeUser( String user )
+    {
+        Optional<RoutingTableEntry> recipientPeer = node.getRoutingTable().findByNodeId( Integer.parseInt( user ) );
+        if( recipientPeer.isPresent() )
+        {
+            Iterator<RoutingTableEntry> iterator = node.getRoutingTable().getEntries().iterator();
+
+            // Iterate over the set and remove entries that meet certain conditions
+            while( iterator.hasNext() )
+            {
+                RoutingTableEntry element = iterator.next();
+                if( element.getNodeId() == recipientPeer.get().getNodeId() )
+                {
+                    logger.info( "Node ({}:{}) Removed ", element.getAddress().getAddress(), element.getAddress().getPort() );
+                    Iterator<Player> playerIterator = node.getGameMap().getPlayers().iterator();
+                    while( playerIterator.hasNext() )
+                    {
+                        Player player = playerIterator.next();
+                        if( player.getName().equals( String.valueOf( element.getNodeId() ) ) )
+                        {
+                            playerIterator.remove(); // Remove the player from the list
+                            break;
+                        }
+                    }
+                    iterator.remove();
+                    break;
+                }
+            }
 
         }
+        else
+        {
+            logger.debug( "Requester not found -> {}", user );
+        }
+    }
 
+
+    private void respondToUnreg( String request, InetSocketAddress recipient ) throws IOException
+    {
+        logger.debug( "Received Leave msg -> {}", request );
+        String[] parts = request.split( Constants.MSG_SEPARATOR );
+
+        if( parts.length == 1 )
+        {
+            Object obj = RequestBuilder.base64StringToObject( parts[0] );
+            if( obj instanceof LeaveAction )
+            {
+                LeaveAction pingMsg = (LeaveAction) obj;
+                Optional<RoutingTableEntry> recipientPeer = node.getRoutingTable().findByNodeId( Integer.parseInt( pingMsg.getActor() ) );
+                if( recipientPeer.isPresent() )
+                {
+                    removeUser( pingMsg.getActor() );
+                }
+                else
+                {
+                    logger.debug( "Requester not found -> {}", pingMsg.getActor() );
+                }
+            }
+        }
 
     }
 

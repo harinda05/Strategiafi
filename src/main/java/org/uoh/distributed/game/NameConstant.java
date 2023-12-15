@@ -9,6 +9,7 @@ public class NameConstant {
     public static final String NODE_NAME = "Node Name";
     public static final String START = "Connect Node";
     public static final String STOP = "Disconnect Node";
+    public static final String FREEZE = "Freeze Node";
     public static final String NODE_IP = "Node IP";
     public static final String NODE_ID = "Node ID";
     public static final String NODE_STATE = "Node State";

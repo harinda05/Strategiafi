@@ -80,9 +80,9 @@ public class Constants {
   public static final int RETRIES_COUNT = 5;
   public static final int RETRY_TIMEOUT_MS = 5000;
   public static final int GRACE_PERIOD_MS = 5000;
-  public static final int HEARTBEAT_FREQUENCY_MS = 20000;
+  public static final int HEARTBEAT_FREQUENCY_MS = 30000;
   public static final int HEARTBEAT_INITIAL_DELAY = 30000;
-  public static final int HEARTBEAT_LIVENESS_LIMIT = 180000;
+  public static final int HEARTBEAT_LIVENESS_LIMIT = 90000;
 
 
   public static final int ADDRESS_SPACE_SIZE = 180;
