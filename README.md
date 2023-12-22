@@ -70,10 +70,10 @@ with._
   ```
 Peer Node: _Actual local game node. Supports multiplayer gaming. All the players
 should be in the same network._
-  * 
-      ```sh
-      java -cp dist-sys.jar org.uoh.distributed.game.GameWindow
-    ```
+* 
+  ```sh
+  java -cp dist-sys.jar org.uoh.distributed.game.GameWindow
+   ```
 
 
 
