@@ -23,11 +23,12 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
+A simple Peer to Peer (P2P) distributed multiplayer game system (2D), that allows the players to
+connect with other players and explore an open grid world and collect rewards.
+
 [![Product Name Screen Shot][product-screenshot]](https://example.com)
 
-A simple Peer to Peer (P2P) distributed multiplayer game system, that allows the players to
-connect with other players and explore an open world and collect rewards. Players have the
-flexibility to join and leave the system at their discretion, engaging in gameplay until they choose
+Players have the flexibility to join and leave the system at their discretion, engaging in gameplay until they choose
 to exit the system. In this game, the strategy revolves around gathering reward points in a
 distributed game map. The ultimate goal is for the player to amass the highest score to secure
 victory.
