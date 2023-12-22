@@ -18,13 +18,14 @@
 *** for contributors-url, forks-url, etc. This is an optional, concise syntax you may use.
 *** https://www.markdownguide.org/basic-syntax/#reference-style-links
 -->
-[![Contributors][contributors-shield]][contributors-url]
 
-<!-- ABOUT THE PROJECT -->
-## About The Project
+# Strategiafi
 
 A simple Peer to Peer (P2P) distributed multiplayer game system (2D), that allows the players to
 connect with other players and explore an open grid world and collect rewards.
+
+<!-- ABOUT THE PROJECT -->
+## About The Project
 
 [![Product Name Screen Shot][product-screenshot]](https://example.com)
 
@@ -127,6 +128,7 @@ than on solid game logics.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+[![Contributors][contributors-shield]][contributors-url]
 
 
 <!-- MARKDOWN LINKS & IMAGES -->
