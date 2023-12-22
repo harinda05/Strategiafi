@@ -34,8 +34,6 @@ victory.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
-
 ### Built With
 
 * [![java][java]][Java-url]
@@ -74,8 +72,6 @@ should be in the same network._
   ```sh
   java -cp dist-sys.jar org.uoh.distributed.game.GameWindow
    ```
-
-
 
 <!-- USAGE EXAMPLES -->
 ## Distributed Features
