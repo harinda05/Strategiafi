@@ -50,7 +50,7 @@ victory.
    git clone https://github.com/harinda05/Strategiafi.git
    ```
    
-2. Install NPM packages
+2. Install Maven packages
    ```sh
    mvn clean install
    ```
